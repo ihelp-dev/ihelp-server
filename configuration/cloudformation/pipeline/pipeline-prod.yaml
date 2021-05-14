@@ -117,7 +117,7 @@ Resources:
                 Capabilities: CAPABILITY_IAM
                 RoleArn: !ImportValue CloudFormationRole
                 StackName: !Sub ${AWS::StackName}-${Environment}-pipeline
-                TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/pipeline/pipeline.yaml
+                TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/pipeline/pipeline-prod.yaml
 
         - Name: GlobalStack
           Actions:
