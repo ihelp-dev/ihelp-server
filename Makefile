@@ -57,5 +57,17 @@ delete_pipeline:
 		--stack-name "$(StackName)-pipeline" \
 
 validate_templates:
-	aws cloudformation validate-template --profile $(ACCOUNTNAME) --template-body file://./configuration/cloudformation/pipeline/pipeline-prod.yaml 1>/dev/null
+	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/pipeline/pipeline-prod.yaml 1>/dev/null
 
+update_pipeline:
+	$(aws) cloudformation update-stack \
+		--stack-name main \
+		--template-body file://configuration/cloudformation/pipeline/pipeline-prod.yaml \
+		--parameters \
+			ParameterKey=Environment,ParameterValue=$(Environment) \
+			ParameterKey=AppName,ParameterValue=$(AppName) \
+			ParameterKey=GitHubRepoName,ParameterValue=$(GitHubRepoName) \
+			ParameterKey=GitHubBranch,ParameterValue=$(GitHubBranch) \
+			ParameterKey=GitHubRepoOwner,ParameterValue=$(GitHubRepoOwner) \
+			ParameterKey=GitHubToken,ParameterValue=$(GitHubToken) \
+		--capabilities CAPABILITY_NAMED_IAM
