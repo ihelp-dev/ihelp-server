@@ -71,7 +71,6 @@ Resources:
         Type: LINUX_CONTAINER
       Source:
         Type: CODEPIPELINE
-        BuildSpec: server/buildspec.yml
       Artifacts:
         Type: CODEPIPELINE
       TimeoutInMinutes: 120

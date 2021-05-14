@@ -6,10 +6,12 @@ phases:
       nodejs: 14
     commands:
       - echo Installing Mocha...
+      - cd server
       - npm install -g mocha
   pre_build:
     commands:
       - echo Installing source NPM dependencies...
+      - cd server 
       - npm install
   build:
     commands:
