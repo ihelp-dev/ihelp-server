@@ -120,7 +120,7 @@ Resources:
                 ParameterOverrides: !Sub >
                   {
                     "Environment": "${Environment}",
-                    "AppName" : "${Environment}",
+                    "AppName" : "${AppName}",
                   }
 
         - Name: GlobalStack
@@ -162,7 +162,7 @@ Resources:
                 ParameterOverrides: !Sub >
                   {
                     "Environment": "${Environment}",
-                    "AppName" : "${Environment}",
+                    "AppName" : "${AppName}",
                   }
               RunOrder: 1
         
