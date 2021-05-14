@@ -121,6 +121,10 @@ Resources:
                   {
                     "Environment": "${Environment}",
                     "AppName" : "${AppName}",
+                    "GitHubRepoOwner" : ${GitHubRepoOwner},
+                    "GitHubRepoName" : ${GitHubRepoName},
+                    "GitHubBranch" : ${GitHubBranch},
+                    "GitHubToken" : ${GitHubToken} 
                   }
 
         - Name: GlobalStack
