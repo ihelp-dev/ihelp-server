@@ -112,9 +112,10 @@ Resources:
               InputArtifacts:
                 - Name: SourceCodeOutputArtifact
               Configuration:
-                ActionMode: CREATE_UPDATE
+                ActionMode: CHANGE_SET_REPLACE
                 Capabilities: CAPABILITY_IAM
                 RoleArn: !ImportValue CloudFormationRole
+                ChangeSetName: pipelinechangeset
                 StackName: !Sub ${AppName}-${Environment}-pipeline
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/pipeline/pipeline-prod.yaml
                 ParameterOverrides: !Sub >
@@ -124,9 +125,9 @@ Resources:
                     "GitHubRepoOwner" : ${GitHubRepoOwner},
                     "GitHubRepoName" : ${GitHubRepoName},
                     "GitHubBranch" : ${GitHubBranch},
-                    "GitHubToken" : ${GitHubToken} 
+                    "GitHubToken" : ${GitHubToken}
                   }
-
+              RunOrder: '1'
         - Name: GlobalStack
           Actions:
             - Name: CreateUpdateGlobalResources
