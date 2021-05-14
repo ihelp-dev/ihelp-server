@@ -13,55 +13,6 @@ Parameters:
     Default: development
 
 Resources:
-  CodeBuildRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${AWS::StackName}-${Environment}-CodeBuild-role
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: ['sts:AssumeRole']
-            Effect: Allow
-            Principal:
-              Service: [codebuild.amazonaws.com]
-        Version: 2012-10-17
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
-
-  CodePipelineRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${AWS::StackName}-${Environment}-${Environment}-codepipeline-role
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Action:
-              - sts:AssumeRole
-            Principal:
-              Service:
-                - codepipeline.amazonaws.com
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AdministratorAccess
-
-  CloudFormationRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${AWS::StackName}-${Environment}-cloudformation-role
-      AssumeRolePolicyDocument:
-        Statement:
-        - Effect: Allow
-          Action:
-            - sts:AssumeRole
-          Principal:
-            Service: 
-              - cloudformation.amazonaws.com
-        Version: '2012-10-17'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AdministratorAccess
-
-  
-
   AutoscalingRole:
     Type: AWS::IAM::Role
     Properties:
@@ -220,30 +171,6 @@ Resources:
        - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
 
 Outputs:
-  CloudFormationRole:
-    Description: Role used by Code Pipeline service
-    Value: !GetAtt CloudFormationRole.Arn
-    Export:
-      Name: CloudFormationRole
-
-  CloudformationRole:
-    Description: Role used by Code Pipeline service
-    Value: !GetAtt CodePipelineRole.Arn
-    Export:
-      Name: CodePipelineRole
-
-  CodeBuildRole:
-    Description: Role used by Code build service
-    Value: !GetAtt CodeBuildRole.Arn
-    Export:
-      Name: CodeBuildRole
-
-  CloudFormationRole:
-    Description: Role used by cloudformation service
-    Value: !GetAtt CloudFormationRole.Arn
-    Export:
-      Name: CloudFormationRole
-
   AutoscalingRole:
     Description: Role used by autoscaling service
     Value: !GetAtt AutoscalingRole.Arn
