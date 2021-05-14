@@ -142,7 +142,7 @@ Resources:
   NLBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${AppName}-${Environment}-target-group
+      Name: !Sub ${AppName}-${Environment}-tr-grp
       Port: 80
       Protocol: TCP
       TargetType: ip

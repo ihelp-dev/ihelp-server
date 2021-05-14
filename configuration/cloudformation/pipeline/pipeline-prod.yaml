@@ -101,7 +101,7 @@ Resources:
                 OAuthToken: !Ref GitHubToken
               RunOrder: 1
 
-        - Name: ConfigurationStackUpdates
+        - Name: ConfigurationUpdates
           Actions:
             - Name: UpdatePipeline
               ActionTypeId:
@@ -141,7 +141,7 @@ Resources:
                 ActionMode: CHANGE_SET_REPLACE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !ImportValue CloudFormationRole
-                StackName: !Sub ${AppName}-${Environment}-global
+                StackName: global
                 ChangeSetName: globalchangeset
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
               RunOrder: 2
