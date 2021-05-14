@@ -50,7 +50,7 @@ create_pipeline_prod:
 			ParameterKey=GitHubRepoOwner,ParameterValue=$(GitHubRepoOwner) \
 			ParameterKey=GitHubToken,ParameterValue=$(GitHubToken) \
 		--template-body file://configuration/cloudformation/pipeline/pipeline-prod.yaml \
-		--capabilities CAPABILITY_NAMED_IAM
+		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
 delete_pipeline:
 	$(aws) cloudformation delete-stack \
@@ -71,4 +71,4 @@ update_pipeline:
 			ParameterKey=GitHubBranch,ParameterValue=$(GitHubBranch) \
 			ParameterKey=GitHubRepoOwner,ParameterValue=$(GitHubRepoOwner) \
 			ParameterKey=GitHubToken,ParameterValue=$(GitHubToken) \
-		--capabilities CAPABILITY_NAMED_IAM
+		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND

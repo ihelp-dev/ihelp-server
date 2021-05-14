@@ -78,9 +78,7 @@ Resources:
               Service: [codebuild.amazonaws.com]
         Version: 2012-10-17
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/AdministratorAccess
 
   CodePipelineRole:
     DependsOn: CloudFormationRole 
@@ -98,15 +96,16 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
 
-
   CodePipelineBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: !Sub ${AppName}-${Environment}-codepipeline-artifacts
-        VersioningConfiguration:
-          Status: Enabled
+    DependsOn: CloudFormationRole
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AppName}-${Environment}-codepipeline-artifacts
+      VersioningConfiguration:
+        Status: Enabled
 
   CodeBuildProject:
+    DependsOn: CodeBuildRole 
     Type: AWS::CodeBuild::Project
     Properties:
       ServiceRole: !GetAtt CodeBuildRole.Arn
@@ -125,6 +124,7 @@ Resources:
       TimeoutInMinutes: 120
 
   CodePipeline:
+    DependsOn: CodePipelineRole 
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name: !Sub ${AppName}-${Environment}-pipeline
@@ -162,7 +162,7 @@ Resources:
               InputArtifacts:
                 - Name: SourceCodeOutputArtifact
               Configuration:
-                ActionMode: CREATE_UPDATE
+                ActionMode: CHANGE_SET_REPLACE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub ${AWS::StackName}
@@ -178,6 +178,20 @@ Resources:
                   }
               RunOrder: 1
 
+            - Name: ExecuteChangeSetPipeline
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                ChangeSetName: pipelinechangeset
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub ${AWS::StackName}
+                Capabilities: CAPABILITY_IAM
+              RunOrder: 2
+
             - Name: GlobalResources
               ActionTypeId:
                 Category: Deploy
@@ -189,11 +203,12 @@ Resources:
               Configuration:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_NAMED_IAM
-                RoleArn: !Ref CloudFormationRole
+                RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: global
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
-              RunOrder: 2
-              
+              RunOrder: 3
+
+
             - Name: UpdateVpcStack
               ActionTypeId:
                 Category: Deploy
@@ -213,7 +228,7 @@ Resources:
                     "Environment": "${Environment}",
                     "AppName" : "${AppName}"
                   }
-              RunOrder: 2
+              RunOrder: 3
         
         - Name: Build
           Actions:
