@@ -144,7 +144,7 @@ Resources:
                 StackName: !Sub ${AppName}-${Environment}-global
                 ChangeSetName: globalchangeset
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
-              RunOrder: 1
+              RunOrder: 2
 
             - Name: UpdateVpcStack
               ActionTypeId:
