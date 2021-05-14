@@ -112,10 +112,9 @@ Resources:
               InputArtifacts:
                 - Name: SourceCodeOutputArtifact
               Configuration:
-                ActionMode: CHANGE_SET_REPLACE
+                ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !ImportValue CloudFormationRole
-                ChangeSetName: pipelinechangeset
                 StackName: !Sub ${AWS::StackName}
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/pipeline/pipeline-prod.yaml
                 ParameterOverrides: !Sub |
@@ -138,11 +137,10 @@ Resources:
               InputArtifacts:
                 - Name: SourceCodeOutputArtifact
               Configuration:
-                ActionMode: CHANGE_SET_REPLACE
+                ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !ImportValue CloudFormationRole
                 StackName: global
-                ChangeSetName: globalchangeset
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
               RunOrder: 2
 
@@ -155,11 +153,10 @@ Resources:
               InputArtifacts:
                 - Name: SourceCodeOutputArtifact
               Configuration:
-                ActionMode: CHANGE_SET_REPLACE
+                ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !ImportValue CloudFormationRole
                 StackName: !Sub ${AppName}-${Environment}-vpc
-                ChangeSetName: vpcchangeset
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/infra/vpc.yaml
                 ParameterOverrides: !Sub |
                   {
