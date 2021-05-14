@@ -9,10 +9,10 @@ GitHubToken=" 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"
 GitHubRepoOwner="ihelp-dev"
 
 ACCOUNTNAME="covid"
-APP_NAME="${GitHubRepo}"
+APP_NAME=$(GitHubRepoName)
 REGION="us-west-2"
 aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
-StackName="ihelp-production"
+StackName="ihelp-main"
 Environment="production"
 
 create_dev_pipeline:

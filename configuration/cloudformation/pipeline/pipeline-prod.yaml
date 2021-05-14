@@ -78,7 +78,7 @@ Resources:
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub ${AWS::StackName}-pipeline
+      Name: !Sub ${AWS::StackName}-${Environment}-pipeline
       RoleArn: !ImportValue CodePipelineRole
       ArtifactStore:
         Location: !Ref CodePipelineBucket
