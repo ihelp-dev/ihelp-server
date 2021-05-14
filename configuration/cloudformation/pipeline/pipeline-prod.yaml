@@ -49,7 +49,24 @@ Metadata:
 
 ###Global resources must be defined before launching the pipeline
 Resources:
+  CloudFormationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-cloudformation-role
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action:
+            - sts:AssumeRole
+          Principal:
+            Service: 
+              - cloudformation.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+        
   CodeBuildRole:
+    DependsOn: CloudFormationRole 
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${AWS::StackName}-${Environment}-codebuild-role
@@ -66,6 +83,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
 
   CodePipelineRole:
+    DependsOn: CloudFormationRole 
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${AWS::StackName}-${Environment}-codepipeline-role
@@ -80,21 +98,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
 
-  CloudFormationRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${AWS::StackName}-${Environment}-cloudformation-role
-      AssumeRolePolicyDocument:
-        Statement:
-        - Effect: Allow
-          Action:
-            - sts:AssumeRole
-          Principal:
-            Service: 
-              - cloudformation.amazonaws.com
-        Version: '2012-10-17'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AdministratorAccess
 
   CodePipelineBucket:
       Type: AWS::S3::Bucket
@@ -148,7 +151,7 @@ Resources:
                 OAuthToken: !Ref GitHubToken
               RunOrder: 1
 
-        - Name: ConfigurationUpdates
+        - Name: Configuration
           Actions:
             - Name: UpdatePipeline
               ActionTypeId:
@@ -190,7 +193,7 @@ Resources:
                 StackName: global
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
               RunOrder: 2
-
+              
             - Name: UpdateVpcStack
               ActionTypeId:
                 Category: Deploy
@@ -210,7 +213,7 @@ Resources:
                     "Environment": "${Environment}",
                     "AppName" : "${AppName}"
                   }
-              RunOrder: 3
+              RunOrder: 2
         
         - Name: Build
           Actions:
@@ -227,8 +230,6 @@ Resources:
               Configuration:
                 ProjectName: !Ref CodeBuildProject
               RunOrder: 1
-
-
 
 Outputs:
   CodePipelineBucket:

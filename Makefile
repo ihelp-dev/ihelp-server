@@ -54,12 +54,12 @@ create_pipeline_prod:
 
 delete_pipeline:
 	$(aws) cloudformation delete-stack \
-		--stack-name "$(StackName)-pipeline" \
+		--stack-name "main"
 
 validate_templates:
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/pipeline/pipeline-prod.yaml 1>/dev/null
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/global/global.yaml 1>/dev/null
-	
+
 update_pipeline:
 	$(aws) cloudformation update-stack \
 		--stack-name main \

@@ -171,6 +171,7 @@ Resources:
        - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
 
 Outputs:
+
   AutoscalingRole:
     Description: Role used by autoscaling service
     Value: !GetAtt AutoscalingRole.Arn
