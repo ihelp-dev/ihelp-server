@@ -175,6 +175,22 @@ Resources:
                   }
               RunOrder: 1
 
+            - Name: GlobalResources
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceCodeOutputArtifact
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !Ref CloudFormationRole
+                StackName: global
+                TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
+              RunOrder: 2
+
             - Name: UpdateVpcStack
               ActionTypeId:
                 Category: Deploy
@@ -211,6 +227,8 @@ Resources:
               Configuration:
                 ProjectName: !Ref CodeBuildProject
               RunOrder: 1
+
+
 
 Outputs:
   CodePipelineBucket:

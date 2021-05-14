@@ -135,7 +135,7 @@ Resources:
     Properties:
       Type: network
       Scheme: internal
-      Name: !Sub "${AppName}-${Environment}-private-nlb"
+      Name: !Sub "${AppName}-${Environment}-nlb"
       Subnets:
         - !Ref PrivateSubnetOne
 
