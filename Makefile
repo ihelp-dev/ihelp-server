@@ -55,7 +55,7 @@ create_pipeline_prod:
 		--stack-name "$(StackName)-pipeline" \
 		--parameters \
 			ParameterKey=Environment,ParameterValue=$(Environment) \
-			ParameterKey=AppName,ParameterValue=$(AppName) \
+			ParameterKey=AppName,ParameterValue=$(APP_NAME) \
 			ParameterKey=GitHubRepoName,ParameterValue=$(GitHubRepoName) \
 			ParameterKey=GitHubBranch,ParameterValue=$(GitHubBranch) \
 			ParameterKey=GitHubRepoOwner,ParameterValue=$(GitHubRepoOwner) \
