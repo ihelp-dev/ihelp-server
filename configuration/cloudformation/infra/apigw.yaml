@@ -1,0 +1,178 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description:
+  This template Amazon api gateway v2 for HTTP endpoints.
+
+Resources:
+  ####### Create vpc endpoint for private subnets #######
+  VPCAPIGatewayEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Ref NameTagValue
+      GroupDescription: Allow any IP through HTTPS
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-api-gw-security-group
+          
+  VPCAPIGatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !Ref APIGatewayEndpointSecurityGroup
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.${AWS::StackName}-api
+      SubnetIds:
+        - !ImportValue ${AWS::StackName}-PrivateSubnetOne
+      VpcEndpointType: Interface
+      VpcId: !Ref VPC
+
+  
+  # -------------------------------------------------------------------------
+  # Deploy API GW HTTP API route and integration to private NLB via VPC Link
+  # -------------------------------------------------------------------------
+  HttpApiNLB:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: ${AWS::StackName}-api-nlb
+      Description: HTTP API NLB
+      ProtocolType: HTTP
+
+  ##Should have NLB already up and running
+  APIIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApiNLB
+      Description: Private NLB Integration
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      ConnectionType: VPC_LINK
+      ConnectionId: 
+        !Ref VPCAPIGatewayEndpoint
+      IntegrationUri: 
+        !ImportValue ${AWS::StackName}-NLBListener
+      PayloadFormatVersion: '1.0'
+
+  APIRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApiNLB
+      RouteKey: 'ANY /'
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIIntegration
+
+  APIStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: $default
+      AutoDeploy: true
+      ApiId: !Ref HttpApiNLB
+
+
+  ###Rest api v1 (much costly than v2) ### 
+  #######Setup API Gateway to be used with VPC Endpoint####### 
+  # PrivateApiGatewayRestApi:
+  #   Type: AWS::ApiGateway::RestApi
+  #   Properties: 
+  #     EndpointConfiguration: 
+  #       Types: 
+  #         - PRIVATE
+  #       VpcEndpointIds:
+  #         - !Ref VPCAPIGatewayEndpoint
+  #     Name: private-api-gateway
+  #     Policy:
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal: "*"
+  #           Action: execute-api:Invoke
+  #           # note that !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccoundId}:${ApiGatewayRestApi}/*/*/*
+  #           # might be the appropriate format but I do not know how to reference an a AWS::ApiGateway::RestApi's
+  #           # ID within itself
+  #           Resource: execute-api:/*/*/*
+  #       Version: 2012-10-17
+
+  # ApiGateway:
+  #   Type: "AWS::ApiGateway::RestApi"
+  #   Properties:
+  #     Name: !Sub "${AWS::StackName}-benefits-api"
+  #     Description: !Sub "${AWS::StackName} benefits API description"
+
+  # ApiGatewayResourceBenefits:
+  #   Type: 'AWS::ApiGateway::Resource'
+  #   Properties:
+  #     RestApiId: !Ref ApiGateway
+  #     ParentId: !GetAtt ApiGateway.RootResourceId
+  #     PathPart: benefits
+
+  # ApiGatewayRootMethodBenefits:
+  #   Type: "AWS::ApiGateway::Method"
+  #   Properties:
+  #     AuthorizationType: "NONE"
+  #     ApiKeyRequired: true
+  #     HttpMethod: "GET"
+  #     Integration:
+  #       IntegrationHttpMethod: "GET"
+  #       Type: "AWS_PROXY"
+  #       PassthroughBehavior: WHEN_NO_TEMPLATES
+  #       Uri: !Sub
+  #         - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+  #         - lambdaArn: !GetAtt "benefitsLambda.Arn"
+  #       IntegrationResponses:
+  #         - StatusCode: 200
+  #     MethodResponses:
+  #       - StatusCode: 200
+  #         ResponseModels:
+  #           application/json: Empty
+  #     RestApiId: !Ref "apiGateway"
+
+   # Allow access to ALB from anywhere on the internet
+  # PublicApiGatewaySecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupDescription: Access to the public facing load balancer
+  #     VpcId: !Ref 'VPC'
+  #     SecurityGroupIngress:
+  #       - CidrIp: 0.0.0.0/0
+  #         IpProtocol: -1
+  #         FromPort: 443
+  #         IpProtocol: tcp
+  #         ToPort: 443
+
+  # ApiGatewayApi:
+  #   Type: AWS::ApiGateway::RestApi
+  #   Properties:
+  #     Body:
+  #       swagger: '1.0'
+  #       info:
+  #         description: Tasks Smith Endpoint
+  #         title: !Ref AWS::StackName
+  #         version: 1.0.0
+  #       schemes:
+  #         - https
+  #       paths:
+  #         /tasks:
+  #           post:
+  #             x-amazon-apigateway-integration:
+  #               responses: {}
+  #               uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TasksSplitterLambda.Arn}/invocations
+  #               credentials: !GetAtt AmazonAPIGatewayInvokeFullAccessRole.Arn
+  #               passthroughBehavior: when_no_match
+  #               httpMethod: POST
+  #               type: aws_proxy
+
+  # ApiGatewayDeployment:
+  #   Type: AWS::ApiGateway::Deployment
+  #   Properties:
+  #     RestApiId: !Ref ApiGatewayApi
+  #     StageName: prod
+Outputs:
+   NodeServiceEndpoint:
+    Description: API Endpoint
+    Value: !Sub https://${ApiGatewayApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/prod/tasks

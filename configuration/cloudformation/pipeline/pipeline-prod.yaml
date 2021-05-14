@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AWS CodePipeline for service
+Parameters:
+  AppName:
+    Type: String
+    Description: "Name of the application"
+  Environment:
+    Type: String
+    Description: "application environment"
+    Default: development
+  GitHubRepoOwner:
+    Type: String
+    Description: GitHub User
+    Default: "ihelp-dev"
+  GitHubRepoName:
+    Type: String
+    Description: GitHub Repo to pull from. Only the Name. not the URL
+    Default: "ihelp-server"
+  GitHubBranch:
+    Type: String
+    Description: GitHub Branch
+    Default: "main"
+  GitHubToken:
+    NoEcho: true
+    Type: String
+    Default: '{{resolve:secretsmanager:github/personal-access-token:SecretString}}'
+    Description: GitHub Token. Must be defined in AWS Secrets Manager and here https://github.com/settings/tokens
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "GitHub Configuration"
+        Parameters:
+          - GitHubToken
+          - GitHubRepoOwner
+          - GitHubRepoName
+          - GitHubBranch
+    ParameterLabels:
+      GitHubToken:
+        default: GitHub OAuth2 Token
+      GitHubRepoOwner: 
+        default: ihelp-dev
+      GitHubRepoName: 
+        default: ihelp-server
+      GitHubBranch: 
+        default: main
+
+
+
+###Global resources must be defined before launching the pipeline
+Resources:
+  CodePipelineBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub ${AWS::StackName}-${Environment}-codepipeline-artifacts
+        VersioningConfiguration:
+          Status: Enabled
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      ServiceRole: !ImportValue CodeBuildRole
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        EnvironmentVariables:
+          - Name: NODE_ENV
+            Type: PLAINTEXT
+            Value: !Sub ${Environment}
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        Type: LINUX_CONTAINER
+      Source:
+        Type: CODEPIPELINE
+      Artifacts:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 120
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Sub ${AWS::StackName}-pipeline
+      RoleArn: !ImportValue CodePipelineRole
+      ArtifactStore:
+        Location: !Ref CodePipelineBucket
+        Type: S3
+        
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: 1
+              OutputArtifacts:
+                - Name: SourceCodeOutputArtifact
+              Configuration:
+                Owner: !Ref GitHubRepoOwner
+                Repo: !Ref GitHubRepoName
+                Branch: !Ref GitHubBranch
+                OAuthToken: !Ref GitHubToken
+              RunOrder: 1
+
+        - Name: Build
+          Actions:
+            - Name: CodeBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: SourceCodeOutputArtifact
+              OutputArtifacts:
+                - Name: BuildOutputArtifact
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              RunOrder: 1
+
+        - Name: VpcUpdateStack
+          Actions:
+            - Name: VpcResourcesChangeStack
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              InputArtifacts:
+                - Name: BuildOutputArtifact
+              Configuration:
+                ActionMode: CHANGE_SET_REPLACE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !ImportValue CloudFormationRole
+                StackName: !Sub ${AWS::StackName}-${Environment}-vpc
+                ChangeSetName: vpcchangeset
+                TemplatePath: BuildOutputArtifact::configuration/cloudformation/vpc/vpc.yaml
+              RunOrder: 1
+
+Outputs:
+  CodePipelineBucket:
+    Description: S3 Bucket for Code Pipeline artifacts
+    Value: !Ref CodePipelineBucket
+    Export:
+      Name: CodePipelineBucket

@@ -1,0 +1,71 @@
+        - Name: Build
+          Actions:
+            - Name: CodeBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: SourceCodeOutputArtifact
+              OutputArtifacts:
+                - Name: CodePipelineBuildOutputArtifact
+              Configuration:
+                ProjectName: !Sub ${AWS::StackName}-codepipeline-build
+              RunOrder: 1
+
+                    - Name: Test
+          Actions:
+            - Name: CodeBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: CodePipelineSourceCodeOutputArtifact
+              OutputArtifacts:
+                - Name: CodePipelineTestOutputArtifact
+              Configuration:
+                ProjectName: !Sub ${AWS::StackName}-codepipeline-test 
+              RunOrder: 1
+        
+        - Name: Deploy
+          Actions:
+            -
+              Name: DeployAction
+              InputArtifacts:
+              -
+                Name: CodePipelineBuildOutputArtifact
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CodeDeploy
+              Configuration:
+                ApplicationName: !Sub ${AWS::StackName}-codepipeline-deploy
+                DeploymentGroupName: !Sub ${AWS::StackName}-codepipeline-deploy-group
+              RunOrder: 1
+
+                GitHubUser:
+    Type: String
+    Description: GitHub User
+    Default: "ihelp-dev"
+  GitHubRepo:
+    Type: String
+    Description: GitHub Repo to pull from. Only the Name. not the URL
+    Default: "ihelp-server"
+  GitHubBranch:
+    Type: String
+    Description: GitHub Branch
+    Default: "main"
+  GitHubToken:
+    NoEcho: true
+    Type: String
+    Default: '{{resolve:secretsmanager:github/personal-access-token:SecretString}}'
+    Description: GitHub Token. Must be defined in AWS Secrets Manager and here https://github.com/settings/tokens
+
+
+    PipelineUrl:
+  Value: !Sub "https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${CodePipeline}"
+  Description: CodePipeline URL

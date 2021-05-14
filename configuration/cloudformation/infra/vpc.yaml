@@ -1,0 +1,206 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description:
+  This template deploys a VPC, with a pair of public and private subnets spread 
+  across two Availabilty Zones. It deploys an Internet Gateway, with a default 
+  route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
+  and default routes for them in the private subnets.
+
+Parameters:
+    Environment:
+      Description: An environment name that will be passed onto aws services
+      Type: String
+      Default: development
+
+Mappings:
+  SubnetConfig:
+    VPC:
+      CIDR: '10.192.0.0/16'
+    PublicOne:
+      CIDR: '10.192.10.0/24'
+    PrivateOne:
+      CIDR: '10.192.20.0/24'
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-vpc"
+
+  ####### Create Subnets #######
+  PublicSubnetOne:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC 
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !FindInMap ['SubnetConfig', 'PublicOne', 'CIDR']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-public-subnet
+  
+  PrivateSubnetOne:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !FindInMap ['SubnetConfig', 'PrivateOne', 'CIDR']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-private-subnet
+
+  ######## Create Internet gateway and Attach Internet Gateway to VPC #######
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-internet-gw"
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  # Setup networking resources for the public subnets. Containers
+  # in the public subnets have public IP addresses and the routing table
+  # sends network traffic via the internet gateway.
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref 'PublicRouteTable'
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref 'InternetGateway'
+
+  PublicSubnetOneRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetOne
+      RouteTableId: !Ref PublicRouteTable
+
+  # Setup networking resources for the private subnets. Containers
+  # in these subnets have only private IP addresses, and must use a NAT
+  # gateway to talk to the internet. We launch NAT gateways, one for
+  # each private subnet.
+  NatGatewayOneAttachment:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGateway 
+    Properties:
+      Domain: vpc
+  
+  NatGatewayOne:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayOneAttachment.AllocationId
+      SubnetId: !Ref PublicSubnetOne
+  
+  PrivateRouteTableOne:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+
+  PrivateRouteOne:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableOne
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayOne
+
+  PrivateRouteTableOneAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableOne
+      SubnetId: !Ref PrivateSubnetOne
+
+  #---------------------------------------------------------------------
+  # Deploy NLB
+  #---------------------------------------------------------------------
+  PrivateNetworkLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: network
+      Scheme: internal
+      Name: !Sub "${AWS::StackName}-private-nlb"
+      Subnets:
+        - !Ref PrivateSubnetOne
+
+  NLBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${AWS::StackName}-target-group
+      Port: 80
+      Protocol: TCP
+      TargetType: ip
+      VpcId: !Ref 'VPC'
+      HealthCheckIntervalSeconds: 10
+      HealthCheckProtocol: TCP
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+  NLBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: NLBTargetGroup
+      LoadBalancerArn:
+        Ref: PrivateNetworkLoadBalancer
+      Port: 80
+      Protocol: TCP
+
+Outputs:
+  VPC:
+    Description: A reference to the created VPC
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VPC'
+
+  PublicSubnets:
+    Description: A list of the public subnets
+    Value: !Join [",", [!Ref PublicSubnetOne]]
+    Export:
+      Name: !Sub '${AWS::StackName}:PublicSubnets'
+      
+  PrivateSubnets:
+    Description: A list of the private subnets
+    Value: !Join [",", [!Ref PrivateSubnetOne]]
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnets'
+
+  PublicSubnetOne:
+    Description: A reference to the public subnet in the 1st Availability Zone
+    Value: !Ref PublicSubnetOne
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetOne'
+
+  PrivateSubnetOne:
+    Description: A reference to the private subnet in the 1st Availability Zone
+    Value: !Ref PrivateSubnetOne
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnetOne'
+
+  PrivateRouteTableOne:
+    Description: A reference to the private route table in the 1st Availability Zone
+    Value: !Ref PrivateRouteTableOne
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateRouteTableOne
+
+  NLBListener:
+    Description: A reference to the private route table in the 1st Availability Zone
+    Value: !Ref NLBListener
+    Export:
+      Name: !Sub ${AWS::StackName}-NLBListener

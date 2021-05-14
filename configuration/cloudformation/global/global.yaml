@@ -1,0 +1,276 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Resources shared across service stacks
+
+Metadata:
+  Version:
+    Description: v1.0.0
+
+Parameters:
+  Environment:
+    Type: String
+    Description: "application environment"
+    Default: development
+
+Resources:
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-CodeBuild-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: ['sts:AssumeRole']
+            Effect: Allow
+            Principal:
+              Service: [codebuild.amazonaws.com]
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-${Environment}-codepipeline-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  CloudFormationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-cloudformation-role
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action:
+            - sts:AssumeRole
+          Principal:
+            Service: 
+              - cloudformation.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  
+
+  AutoscalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-Autoscaling-role
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [application-autoscaling.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - PolicyName: !Sub ${AWS::StackName}-${Environment}-AutoscalingRole-policy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'application-autoscaling:*'
+              - 'cloudwatch:DescribeAlarms'
+              - 'cloudwatch:PutMetricAlarm'
+              - 'ecs:DescribeServices'
+              - 'ecs:UpdateService'
+            Resource: '*'
+
+# Role for the EC2 hosts. This allows the ECS agent on the EC2 hosts
+# to communicate with the ECS control plane, as well as download the docker
+# images from ECR to run on your host.
+  Ec2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-EC2Instance-role
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [ec2.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - PolicyName: !Sub ${AWS::StackName}-${Environment}-Ec2InstanceRole-policy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'ecs:CreateCluster'
+              - 'ecs:DeregisterContainerInstance'
+              - 'ecs:DiscoverPollEndpoint'
+              - 'ecs:Poll'
+              - 'ecs:RegisterContainerInstance'
+              - 'ecs:StartTelemetrySession'
+              - 'ecs:Submit*'
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+              - 'ecr:GetAuthorizationToken'
+              - 'ecr:BatchGetImage'
+              - 'ecr:GetDownloadUrlForLayer'
+            Resource: '*'
+
+# This is an IAM role which authorizes ECS to manage resources on the account
+  ECSRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-ecs-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com, ecs.amazonaws.com, ecs-tasks.amazonaws.com, sns.amazonaws.com]
+              AWS: "*"
+            Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-${Environment}-ecs-role-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  # Rules which allow ECS to attach network interfaces to instances
+                  # on your behalf in order for awsvpc networking mode to work right
+                  - ec2:AttachNetworkInterface
+                  - ec2:CreateNetworkInterface
+                  - ec2:CreateNetworkInterfacePermission
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DeleteNetworkInterfacePermission
+                  - ec2:Describe*
+                  - ec2:DetachNetworkInterface
+
+                  # Rules which allow ECS to update load balancers on your behalf
+                  # with the information sabout how to send traffic to your containers
+                  - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
+                  - elasticloadbalancing:DeregisterTargets
+                  - elasticloadbalancing:Describe*
+                  - elasticloadbalancing:RegisterInstancesWithLoadBalancer
+                  - elasticloadbalancing:RegisterTargets
+
+                  - sqs:SendMessage
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+
+                  - iam:PassRole
+
+                  - s3:*
+
+                  - sns:Publish
+                  - sns:Subscribe
+
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                Resource: '*'
+
+
+  APIGatewayInvokeFullAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-ApiGateway-full-access-role 
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+            Condition: {}
+      Path: /
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-${Environment}-api-gateway-full-access-role-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - '*'
+
+  CloudWatchRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${Environment}-cloudwatch-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Path: '/'
+      ManagedPolicyArns:
+       - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
+
+Outputs:
+  CloudFormationRole:
+    Description: Role used by Code Pipeline service
+    Value: !GetAtt CloudFormationRole.Arn
+    Export:
+      Name: CloudFormationRole
+
+  CloudformationRole:
+    Description: Role used by Code Pipeline service
+    Value: !GetAtt CodePipelineRole.Arn
+    Export:
+      Name: CodePipelineRole
+
+  CodeBuildRole:
+    Description: Role used by Code build service
+    Value: !GetAtt CodeBuildRole.Arn
+    Export:
+      Name: CodeBuildRole
+
+  CloudFormationRole:
+    Description: Role used by cloudformation service
+    Value: !GetAtt CloudFormationRole.Arn
+    Export:
+      Name: CloudFormationRole
+
+  AutoscalingRole:
+    Description: Role used by autoscaling service
+    Value: !GetAtt AutoscalingRole.Arn
+    Export:
+      Name: AutoscalingRole
+
+  Ec2InstanceRole:
+    Description: Role used by ec2 services
+    Value: !GetAtt Ec2InstanceRole.Arn
+    Export:
+      Name: Ec2InstanceRole
+
+  ECSRole:
+    Description: Role used by ecs services
+    Value: !GetAtt ECSRole.Arn
+    Export:
+      Name: ECSRole 
+      
+  APIGatewayInvokeFullAccessRole:
+    Description: Role used by api gateway services
+    Value: !GetAtt APIGatewayInvokeFullAccessRole.Arn
+    Export:
+      Name: APIGatewayInvokeFullAccessRole
+
+  CloudWatchRole:
+    Description: Role used by cloudwatch services
+    Value: !GetAtt CloudWatchRole.Arn
+    Export:
+      Name: CloudWatchRole
+      
