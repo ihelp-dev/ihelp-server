@@ -9,21 +9,10 @@ GitHubToken=" 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"
 GitHubRepoOwner="ihelp-dev"
 
 ACCOUNTNAME="covid"
-APP_NAME=$(GitHubRepoName)
+AppName="$(GitHubRepoName)"
 REGION="us-west-2"
 aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
-StackName="ihelp-main"
 Environment="production"
-
-create_dev_pipeline:
-		aws --profile $(ACCOUNTNAME) cloudformation \
-		create-stack --stack-name ihelp-${USER} \
-		--template-body file://configuration/cloudformation/infra/vpc.yaml \
-		--parameters \
-		ParameterKey=GitHubUser,ParameterValue="ihelp-dev" \
-		ParameterKey=GitHubRepo,ParameterValue=${USER} \
-		ParameterKey=GitHubBranch,ParameterValue=${GitHubBranch} \
-		ParameterKey=BranchName,ParameterValue=${GitHubBranch}
 
 create_global_resources:
 	$(aws) cloudformation create-stack \
@@ -52,10 +41,10 @@ delete_vpc_resources:
 
 create_pipeline_prod:
 	$(aws) cloudformation create-stack \
-		--stack-name "$(StackName)-pipeline" \
+		--stack-name "main" \
 		--parameters \
 			ParameterKey=Environment,ParameterValue=$(Environment) \
-			ParameterKey=AppName,ParameterValue=$(APP_NAME) \
+			ParameterKey=AppName,ParameterValue=$(AppName) \
 			ParameterKey=GitHubRepoName,ParameterValue=$(GitHubRepoName) \
 			ParameterKey=GitHubBranch,ParameterValue=$(GitHubBranch) \
 			ParameterKey=GitHubRepoOwner,ParameterValue=$(GitHubRepoOwner) \

@@ -47,13 +47,12 @@ Metadata:
         default: main
 
 
-
 ###Global resources must be defined before launching the pipeline
 Resources:
   CodePipelineBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: !Sub ${AWS::StackName}-${Environment}-codepipeline-artifacts
+        BucketName: !Sub ${AppName}-${Environment}-codepipeline-artifacts
         VersioningConfiguration:
           Status: Enabled
 
@@ -78,7 +77,7 @@ Resources:
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub ${AWS::StackName}-${Environment}-pipeline
+      Name: !Sub ${AppName}-${Environment}-pipeline
       RoleArn: !ImportValue CodePipelineRole
       ArtifactStore:
         Location: !Ref CodePipelineBucket
@@ -116,8 +115,13 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_IAM
                 RoleArn: !ImportValue CloudFormationRole
-                StackName: !Sub ${AWS::StackName}-${Environment}-pipeline
+                StackName: !Sub ${AppName}-${Environment}-pipeline
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/pipeline/pipeline-prod.yaml
+                ParameterOverrides: !Sub >
+                  {
+                    "Environment": "${Environment}",
+                    "AppName" : "${Environment}",
+                  }
 
         - Name: GlobalStack
           Actions:
@@ -133,7 +137,7 @@ Resources:
                 ActionMode: CHANGE_SET_REPLACE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !ImportValue CloudFormationRole
-                StackName: !Sub ${AWS::StackName}-${Environment}-global
+                StackName: !Sub ${AppName}-${Environment}-global
                 ChangeSetName: vpcchangeset
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
               RunOrder: 1
@@ -152,12 +156,13 @@ Resources:
                 ActionMode: CHANGE_SET_REPLACE
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !ImportValue CloudFormationRole
-                StackName: !Sub ${AWS::StackName}-${Environment}-vpc
+                StackName: !Sub ${AppName}-${Environment}-vpc
                 ChangeSetName: vpcchangeset
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/vpc/vpc.yaml
                 ParameterOverrides: !Sub >
                   {
                     "Environment": "${Environment}",
+                    "AppName" : "${Environment}",
                   }
               RunOrder: 1
         

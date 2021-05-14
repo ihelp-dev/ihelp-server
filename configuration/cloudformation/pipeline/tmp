@@ -69,3 +69,8 @@
     PipelineUrl:
   Value: !Sub "https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${CodePipeline}"
   Description: CodePipeline URL
+
+
+
+
+  
