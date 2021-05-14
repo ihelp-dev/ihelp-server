@@ -106,7 +106,7 @@ Resources:
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      ServiceRole: !Ref CodeBuildRole
+      ServiceRole: !GetAtt CodeBuildRole.Arn
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
@@ -125,7 +125,7 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name: !Sub ${AppName}-${Environment}-pipeline
-      RoleArn: !Ref CodePipelineRole
+      RoleArn: !GetAtt CodePipelineRole.Arn
       ArtifactStore:
         Location: !Ref CodePipelineBucket
         Type: S3
@@ -161,7 +161,7 @@ Resources:
               Configuration:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_NAMED_IAM
-                RoleArn: !Ref CloudFormationRole
+                RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub ${AWS::StackName}
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/pipeline/pipeline-prod.yaml
                 ParameterOverrides: !Sub |
@@ -174,7 +174,7 @@ Resources:
                     "GitHubToken" : "${GitHubToken}"
                   }
               RunOrder: 1
-              
+
             - Name: UpdateVpcStack
               ActionTypeId:
                 Category: Deploy
@@ -186,7 +186,7 @@ Resources:
               Configuration:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_NAMED_IAM
-                RoleArn: !Ref CloudFormationRole
+                RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub ${AppName}-${Environment}-vpc
                 TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/infra/vpc.yaml
                 ParameterOverrides: !Sub |
