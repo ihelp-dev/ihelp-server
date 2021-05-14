@@ -56,3 +56,6 @@ delete_pipeline:
 	$(aws) cloudformation delete-stack \
 		--stack-name "$(StackName)-pipeline" \
 
+validate_templates:
+	aws cloudformation validate-template --profile $(ACCOUNTNAME) --template-body file://./configuration/cloudformation/pipeline/pipeline-prod.yaml 1>/dev/null
+
