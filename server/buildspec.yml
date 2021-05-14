@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 10
+      nodejs: 14
     commands:
       - echo Installing Mocha...
       - npm install -g mocha
@@ -15,7 +15,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Compiling the Node.js code
-      - npm run test
+      #- npm run test
   post_build:
     commands:
       - echo Build completed on `date`
