@@ -9,10 +9,10 @@ GitHubToken=" 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"
 GitHubRepoOwner="ihelp-dev"
 
 ACCOUNTNAME="covid"
-APP_NAME="ihelp-${GitHubRepo}"
+APP_NAME="${GitHubRepo}"
 REGION="us-west-2"
 aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
-StackName="upcp-production"
+StackName="ihelp-production"
 Environment="production"
 
 create_dev_pipeline:
@@ -25,18 +25,11 @@ create_dev_pipeline:
 		ParameterKey=GitHubBranch,ParameterValue=${GitHubBranch} \
 		ParameterKey=BranchName,ParameterValue=${GitHubBranch}
 
-create_global_res:
+create_global_resources:
 	$(aws) cloudformation create-stack \
 		--stack-name global \
 		--parameters \
 			ParameterKey=Environment,ParameterValue="production" \
-		--template-body file://configuration/cloudformation/global/global.yaml \
-		--capabilities CAPABILITY_NAMED_IAM
-
-create_global_resources:
-	$(aws) cloudformation create-change-set \
-		--change-set-name latest-${EPOCH} \
-		--stack-name global \
 		--template-body file://configuration/cloudformation/global/global.yaml \
 		--capabilities CAPABILITY_NAMED_IAM
 
@@ -62,7 +55,7 @@ create_pipeline_prod:
 		--stack-name "$(StackName)-pipeline" \
 		--parameters \
 			ParameterKey=Environment,ParameterValue=$(Environment) \
-			ParameterKey=AppName,ParameterValue="upcp-try" \
+			ParameterKey=AppName,ParameterValue=$(AppName) \
 			ParameterKey=GitHubRepoName,ParameterValue=$(GitHubRepoName) \
 			ParameterKey=GitHubBranch,ParameterValue=$(GitHubBranch) \
 			ParameterKey=GitHubRepoOwner,ParameterValue=$(GitHubRepoOwner) \
