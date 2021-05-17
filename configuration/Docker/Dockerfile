@@ -1,7 +1,7 @@
 FROM node:14
 
 # Create app directory
-RUN mkdir -p /usr/src/app/lib
+RUN mkdir -p /usr/src/app
 
 WORKDIR /usr/src/app
 
@@ -9,10 +9,8 @@ WORKDIR /usr/src/app
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
 
-# Copy required packages to image
-COPY package*.json ./
-COPY server.js  ./
-COPY lib/* ./lib/
+# Copy required packages to image, node_modules should be included in .gitignore
+COPY server/* ./
 
 RUN npm install
 # If you are building your code for production
