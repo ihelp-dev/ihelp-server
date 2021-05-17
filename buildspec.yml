@@ -39,7 +39,7 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Push image to ECR
-      - docker push ${IMAGE_URI}:{IMAGE_TAG}
+      - docker push "${IMAGE_URI}:${IMAGE_TAG}"
       - printf '[{"name":"ihelp-server","imageUri":"%s"}]' ${IMAGE_URI}:${IMAGE_TAG} > imagedefinitions.json
       - cat imagedefinitions.json
 
