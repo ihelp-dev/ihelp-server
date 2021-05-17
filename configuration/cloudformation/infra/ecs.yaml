@@ -1,110 +1,20 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description:
-  This template deploys a VPC, with a pair of public and private subnets spread 
-  across two Availabilty Zones. It deploys an Internet Gateway, with a default 
-  route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
-  and default routes for them in the private subnets.
+Description: This repo create required ECS resources
 
+Parameters:
+  AppName:
+    Type: String
+    Description: "Name of the application"
+
+  Environment:
+    Type: String
+    Description: "application environment"
+    Default: development
 
 Resources:
-  # A security group for the containers we will run in Fargate.
-  # Three rules, allowing network traffic from a public facing load
-  # balancer, a private internal load balancer, and from other members
-  # of the security group.
-  #
-  # Remove any of the following ingress rules that are not needed.
-  FargateContainerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+  Ecr:
+    Type: AWS::ECR::Repository
     Properties:
-      GroupDescription: Access to the Fargate containers
-      VpcId: !Ref 'VPC'
-
-  EcsSecurityGroupIngressFromPublicALB:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      Description: Ingress from the public ALB
-      GroupId: !Ref 'FargateContainerSecurityGroup'
-      IpProtocol: -1
-      SourceSecurityGroupId: !Ref 'PublicApiGatewaySecurityGroup'
-
-  ECSLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: ${AWS::StackName}-ecs-logs
-
-  ECSCluster:
-    Type: AWS::ECS::Cluster
-    Properties:
-      ClusterName: ${AWS::StackName}-ecs-cluster
-
-  TaskDefinition:
-    Type: AWS::ECS::TaskDefinition
-    Properties:
-      Cpu: "1024"
-      Memory: "2048"
-      RequiresCompatibilities:
-        - "EC2"
-        - "FARGATE"
-      ContainerDefinitions:
-        - Name: !Sub ${AWS::StackName}-ecs-container 
-          Image: !Ref DockerImage
-          Essential: true
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group: ${AWS::StackName}-ecs-logs 
-              awslogs-region: !Sub ${AWS::Region}
-              awslogs-stream-prefix: exec
-      Family: !Sub '${AWS::StackName}-task'
-      NetworkMode: awsvpc
-      ExecutionRoleArn: !ImportValue ECSRole.Arn
-      TaskRoleArn: !ImportValue ECSRole.Arn
-
-
-# A security group for the ECS containers.
-# Rules are added to this security group based on what ingress rules are
-# added to the cluster.
-  ContainerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Access to the ECS hosts that run containers
-      VpcId: !Ref 'VPC'
-
-# Autoscaling group. This launches the actual EC2 instances that will register
-# themselves as members of the cluster, and run the docker containers.
-  ECSAutoScalingGroup:
-    Type: AWS::AutoScaling::AutoScalingGroup
-    Properties:
-      VPCZoneIdentifier:           # Deploy into Private Subnet
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-        - !Ref PrivateSubnetThree
-      LaunchConfigurationName: !Ref 'ContainerInstances'
-      MinSize: '1'
-      MaxSize: !Ref 'MaxSize'
-      DesiredCapacity: !Ref 'DesiredCapacity'
-    CreationPolicy:
-      ResourceSignal:
-        Timeout: PT15M
-    UpdatePolicy:
-      AutoScalingReplacingUpdate:
-        WillReplace: 'true'
-  ContainerInstances:
-    Type: AWS::AutoScaling::LaunchConfiguration
-    Properties:
-      ImageId: !Ref 'ECSAMI'
-      SecurityGroups: [!Ref 'ContainerSecurityGroup']
-      InstanceType: !Ref 'InstanceType'
-      IamInstanceProfile: !Ref 'EC2InstanceProfile'
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash -xe
-          echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
-          yum install -y aws-cfn-bootstrap
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
-  EC2InstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: /
-      Roles: [!Ref 'EC2Role']
+      RepositoryName: !Sub ${AppName}
+    
