@@ -118,7 +118,11 @@ Resources:
           - Name: IMAGE_URI
             Type: PLAINTEXT
             Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ihelp-server_${Environment}
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+          - Name: AWS_ACCOUNT_ID
+            Type: PLAINTEXT
+            Value: !Sub ${AWS::AccountId}
+        Image: aws/codebuild/standard:3.0
+        PrivilegedMode: True
         Type: LINUX_CONTAINER
       Source:
         Type: CODEPIPELINE
