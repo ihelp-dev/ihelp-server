@@ -11,8 +11,9 @@ GitHubRepoOwner="ihelp-dev"
 ACCOUNTNAME="covid"
 AppName="$(GitHubRepoName)"
 REGION="us-west-2"
-aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
 Environment="production"
+aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
+
 
 create_global_resources:
 	$(aws) cloudformation create-stack \
@@ -72,3 +73,11 @@ update_pipeline:
 			ParameterKey=GitHubRepoOwner,ParameterValue=$(GitHubRepoOwner) \
 			ParameterKey=GitHubToken,ParameterValue=$(GitHubToken) \
 		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+
+make_docker_image:
+	$(eval dockerTag := "776006903638.dkr.ecr.$(REGION).amazonaws.com/$(AppName)_$(Environment)")
+	echo $(dockerTag)
+	$(aws ecr get-login --no-include-email --region $(REGION))
+	docker build server -t $(dockerTag) -f configuration/Docker/Dockerfile
+
+	docker push $(dockerTag)

@@ -115,6 +115,9 @@ Resources:
           - Name: NODE_ENV
             Type: PLAINTEXT
             Value: !Sub ${Environment}
+          - Name: IMAGE_URI
+            Type: PLAINTEXT
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ihelp-server_${Environment}
         Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
         Type: LINUX_CONTAINER
       Source:
