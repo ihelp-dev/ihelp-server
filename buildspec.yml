@@ -14,7 +14,7 @@ phases:
       - echo node port
       - NODE_PORT=$NODE_PORT
       - echo image uri
-      - echo $IMAGE_URI
+      - echo ${IMAGE_URI}
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION  | cut -c 1-7)
       - echo Image tag
       - echo ${IMAGE_TAG}
@@ -27,16 +27,18 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building images...
-      - docker build -t $IMAGE_URI:$IMAGE_TAG -f configuration/Docker/Dockerfile
+      - echo "Current working directory"
+      - pwd
+      - docker build server -t ${IMAGE_URI}:${IMAGE_TAG} -f configuration/Docker/Dockerfile
       - echo Tag the docker image
-      - docker tag ${IMAGE_URI}:$IMAGE_TAG
+      - docker tag ${IMAGE_URI}:${IMAGE_TAG}
 
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Push image to ECR
-      - docker push $IMAGE_URI
-      - printf '[{"name":"ihelp-server","imageUri":"%s"}]' $IMAGE_URI:$IMAGE_TAG > imagedefinitions.json
+      - docker push ${IMAGE_URI}:{IMAGE_TAG}
+      - printf '[{"name":"ihelp-server","imageUri":"%s"}]' ${IMAGE_URI}:${I}MAGE_TAG} > imagedefinitions.json
       - cat imagedefinitions.json
 
 # Include only the files required for your application to run.
