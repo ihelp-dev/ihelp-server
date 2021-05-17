@@ -85,5 +85,5 @@ init_node_image:
 
 
 docker_local:
-	docker build server -t ${AppName}:latest -f configuration/Docker/Dockerfile --build-arg NODE_IMAGE=${IMAGE_URI}:node10
-	docker run -p 8001:3001 ${AppName}:latest 
+	docker build . -t ${AppName}:local --build-arg NODE_IMAGE=${IMAGE_URI}:node10
+	docker run -p 8001:3001 ${AppName}:local 
