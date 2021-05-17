@@ -16,5 +16,5 @@ Resources:
   Ecr:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: !Sub ${AppName}
+      RepositoryName: !Sub ${AppName}_${Environment}
     

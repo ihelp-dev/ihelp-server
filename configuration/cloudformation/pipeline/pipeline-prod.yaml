@@ -117,7 +117,7 @@ Resources:
             Value: !Sub ${Environment}
           - Name: IMAGE_URI
             Type: PLAINTEXT
-            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ihelp-server_${Environment}
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}_${Environment}
           - Name: AWS_ACCOUNT_ID
             Type: PLAINTEXT
             Value: !Sub ${AWS::AccountId}
