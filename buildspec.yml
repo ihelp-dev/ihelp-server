@@ -4,9 +4,13 @@ phases:
   install:
     runtime-versions:
       nodejs: 10
+
+  pre_build:
     commands:
       - aws --version
-      - sudo apt-get update
+      - node --version
+      - docker --version
+      - apt-get update
       - NODE_ENV=$NODE_ENV
       - echo node port
       - NODE_PORT=$NODE_PORT
@@ -15,11 +19,6 @@ phases:
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION  | cut -c 1-7)
       - echo Image tag
       - echo ${IMAGE_TAG}
-
-  pre_build:
-    commands:
-      - node --version
-      - docker --version
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_REGION)
       - echo Installing Mocha...
