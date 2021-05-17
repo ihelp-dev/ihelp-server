@@ -29,7 +29,7 @@ phases:
       - echo Building images...
       - echo "Current working directory"
       - pwd
-      - docker build server -t ${IMAGE_URI}:${IMAGE_TAG} -f configuration/Docker/Dockerfile
+      - docker build server -t ${IMAGE_URI}:${IMAGE_TAG} -f configuration/Docker/Dockerfile --build-arg NODE_IMAGE=${IMAGE_URI}:node10
       - echo Tag the docker image
       - docker tag ${IMAGE_URI}:${IMAGE_TAG}
 

@@ -3,17 +3,17 @@ SHELL := /bin/bash
 export PATH := $(CURDIR)/_tools/bin:$(PATH)
 EPOCH=$(shell date +"%s")
 
-GitHubRepoName="ihelp-server"
+GitHubRepoName=ihelp-server
 GitHubBranch=$(shell git rev-parse --abbrev-ref HEAD)
-GitHubToken=" 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"
-GitHubRepoOwner="ihelp-dev"
+GitHubToken=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
+GitHubRepoOwner=ihelp-dev
 
-ACCOUNTNAME="covid"
-AppName="$(GitHubRepoName)"
-REGION="us-west-2"
-Environment="production"
+ACCOUNTNAME=covid
+AppName=$(GitHubRepoName)
+REGION=us-west-2
+Environment=production
 aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
-
+IMAGE_URI=776006903638.dkr.ecr.$(REGION).amazonaws.com/$(AppName)_$(Environment)
 
 create_global_resources:
 	$(aws) cloudformation create-stack \
@@ -60,7 +60,9 @@ delete_pipeline:
 validate_templates:
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/pipeline/pipeline-prod.yaml 1>/dev/null
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/global/global.yaml 1>/dev/null
-
+	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/infra/ecs.yaml 1>/dev/null
+	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/infra/vpc.yaml 1>/dev/null
+	
 update_pipeline:
 	$(aws) cloudformation update-stack \
 		--stack-name main \
@@ -74,10 +76,14 @@ update_pipeline:
 			ParameterKey=GitHubToken,ParameterValue=$(GitHubToken) \
 		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
-make_docker_image:
-	$(eval dockerTag := "776006903638.dkr.ecr.$(REGION).amazonaws.com/$(AppName)_$(Environment)")
-	echo $(dockerTag)
+init_node_image:
+	##Should be called after pipeline create ECR repository
+	docker pull node
 	$(aws ecr get-login --no-include-email --region $(REGION))
-	docker build server -t $(dockerTag) -f configuration/Docker/Dockerfile
+	docker tag node $(nodeImage):node10
+	docker push "$(nodeImage):node10"
 
-	docker push $(dockerTag)
+
+docker_local:
+	docker build server -t ${AppName}:latest -f configuration/Docker/Dockerfile --build-arg NODE_IMAGE=${IMAGE_URI}:node10
+	docker run -p 8001:3001 ${AppName}:latest 
