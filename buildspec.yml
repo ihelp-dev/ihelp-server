@@ -4,17 +4,17 @@ phases:
   install:
     runtime-versions:
       nodejs: 14
-       commands:
-         - aws --version
-         - sudo apt-get update
-         - NODE_ENV=$NODE_ENV
-         - echo node port
-         - NODE_PORT=$NODE_PORT
-         - echo image uri
-         - echo $IMAGE_URI
-         - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION  | cut -c 1-7)
-         - echo Image tag
-         - echo ${IMAGE_TAG}
+    commands:
+      - aws --version
+      - sudo apt-get update
+      - NODE_ENV=$NODE_ENV
+      - echo node port
+      - NODE_PORT=$NODE_PORT
+      - echo image uri
+      - echo $IMAGE_URI
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION  | cut -c 1-7)
+      - echo Image tag
+      - echo ${IMAGE_TAG}
 
   pre_build:
     commands:
