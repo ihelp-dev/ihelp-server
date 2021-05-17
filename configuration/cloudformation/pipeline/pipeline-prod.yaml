@@ -118,6 +118,9 @@ Resources:
           - Name: IMAGE_URI
             Type: PLAINTEXT
             Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}_${Environment}
+          - Name: NODE_URI
+            Type: PLAINTEXT
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/node
           - Name: AWS_ACCOUNT_ID
             Type: PLAINTEXT
             Value: !Sub ${AWS::AccountId}

@@ -18,6 +18,8 @@ phases:
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION  | cut -c 1-7)
       - echo Image tag
       - echo ${IMAGE_TAG}
+      - echo node image uri
+      - echo ${NODE_URI}
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_REGION)
       - echo Installing Mocha...
@@ -29,9 +31,9 @@ phases:
       - echo Building images...
       - echo "Current working directory"
       - pwd
-      - docker build . -t ${IMAGE_URI}:${IMAGE_TAG} --build-arg NODE_IMAGE=${IMAGE_URI}:node10
+      - docker build . -t ${IMAGE_URI}:${IMAGE_TAG} --build-arg NODE_IMAGE=${NODE_URI}:latest
       - echo Tag the docker image
-      - docker tag ${IMAGE_URI}:${IMAGE_TAG}
+      - docker tag ${NODE_URI}:latest ${IMAGE_URI}:${IMAGE_TAG}
 
   post_build:
     commands:

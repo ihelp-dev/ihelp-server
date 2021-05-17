@@ -13,7 +13,9 @@ AppName=$(GitHubRepoName)
 REGION=us-west-2
 Environment=production
 aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
-IMAGE_URI=776006903638.dkr.ecr.$(REGION).amazonaws.com/$(AppName)_$(Environment)
+REPO_URI=776006903638.dkr.ecr.$(REGION).amazonaws.com
+NODE_IMAGE=$(REPO_URI)/node
+IMAGE_URI=$(REPO_URI)/$(AppName)_$(Environment)
 
 create_global_resources:
 	$(aws) cloudformation create-stack \
@@ -64,6 +66,7 @@ validate_templates:
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/infra/vpc.yaml 1>/dev/null
 	
 update_pipeline:
+	validate_templates
 	$(aws) cloudformation update-stack \
 		--stack-name main \
 		--template-body file://configuration/cloudformation/pipeline/pipeline-prod.yaml \
@@ -80,8 +83,8 @@ init_node_image:
 	##Should be called after pipeline create ECR repository
 	docker pull node
 	$(aws ecr get-login --no-include-email --region $(REGION))
-	docker tag node $(nodeImage):node10
-	docker push "$(nodeImage):node10"
+	docker tag node $(NODE_IMAGE):latest
+	docker push "$(NODE_IMAGE):latest"
 
 
 docker_local:

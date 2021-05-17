@@ -13,7 +13,12 @@ Parameters:
     Default: development
 
 Resources:
-  Ecr:
+  NodeECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub node
+
+  ImageECR:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: !Sub ${AppName}_${Environment}
