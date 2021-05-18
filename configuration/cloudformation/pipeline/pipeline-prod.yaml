@@ -135,6 +135,12 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       TimeoutInMinutes: 120
+      
+  ##This is required before build.     
+  NodeECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: node
 
   CodePipeline:
     DependsOn: CodePipelineRole 

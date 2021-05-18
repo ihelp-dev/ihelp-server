@@ -54,10 +54,6 @@ Mappings:
       Val: 2048
 
 Resources:
-  NodeECR:
-    Type: AWS::ECR::Repository
-    Properties:
-      RepositoryName: node
 
   ImageECR:
     Type: AWS::ECR::Repository
