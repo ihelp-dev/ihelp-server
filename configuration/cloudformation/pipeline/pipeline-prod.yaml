@@ -271,7 +271,7 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: pipelinechangeset
-                RoleArn: !ImportValue CloudFormationRole
+                RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub SourceCodeOutputArtifact::configuration/cloudformation/pipeline/pipeline-prod.yaml
                 Capabilities: CAPABILITY_IAM
               RunOrder: 1
@@ -285,7 +285,7 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: globalchangeset
-                RoleArn: !ImportValue CloudFormationRole
+                RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
                 Capabilities: CAPABILITY_IAM
               RunOrder: 2
@@ -299,7 +299,7 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: vpcchangeset
-                RoleArn: !ImportValue CloudFormationRole
+                RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub SourceCodeOutputArtifact::configuration/cloudformation/infra/vpc.yaml
                 Capabilities: CAPABILITY_IAM
               RunOrder: 3
@@ -313,7 +313,7 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: vpcchangeset
-                RoleArn: !ImportValue CloudFormationRole
+                RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub SourceCodeOutputArtifact::configuration/cloudformation/infra/ecs.yaml
                 Capabilities: CAPABILITY_IAM
               RunOrder: 4
