@@ -256,7 +256,7 @@ Resources:
                     "AppName" : "${AppName}"
                   }
               RunOrder: 3
-              
+
         - Name: Execute
           Actions:
             - Name: ExecutePipelineChangeSet
@@ -309,7 +309,7 @@ Resources:
                 Version: '1'
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
-                ChangeSetName: vpcchangeset
+                ChangeSetName: ecschangeset
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub ${AppName}-${Environment}-ecs
                 Capabilities: CAPABILITY_IAM
