@@ -209,7 +209,8 @@ Resources:
                 TemplatePath: !Sub SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
                 ParameterOverrides: !Sub |
                   {
-                    "AppName" : "${AppName}"
+                    "AppName" : "${AppName}",
+                    "Environment": "${Environment}"
                   }
               RunOrder: 2
 

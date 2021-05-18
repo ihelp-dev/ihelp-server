@@ -72,7 +72,7 @@ update_pipeline: validate_templates
 
 init_node_image:
 	docker pull node
-	$(aws ecr get-login --no-include-email --region $(REGION))
+	eval $(aws ecr get-login --no-include-email --region $(REGION) --profile $(ACCOUNTNAME))
 	docker tag node $(NODE_IMAGE):latest
 	docker push "$(NODE_IMAGE):latest"
 
