@@ -16,19 +16,19 @@ Parameters:
     Description: "Name of the application"
 
   #Total 128 address /25
-  #/27: 30 address each
+  #https://www.davidc.net/sites/default/subnets/subnets.html
 Mappings:
   SubnetConfig:
     VPC:
-      CIDR: '172.16.1.0/27'
+      CIDR: '172.16.0.0/30'
     PublicOne:
-      CIDR: '172.16.1.0/29'
+      CIDR: '172.16.0.0/30'
     PublicTwo:
-      CIDR: '172.16.1.8/29'
+      CIDR: '172.16.0.4/30'
     PrivateOne:
-      CIDR: '172.16.1.16/29'
+      CIDR: '172.16.0.32/27'
     PrivateTwo:
-      CIDR: '172.16.1.24/29'
+      CIDR: '172.16.0.64/26'
 
 Resources:
   VPC:
