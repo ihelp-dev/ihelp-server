@@ -11,7 +11,10 @@ Parameters:
     Type: String
     Description: "application environment"
     Default: development
-
+  AppName:
+    Type: String
+    Description: "Name of the application"
+    
 Resources:
   AutoscalingRole:
     Type: AWS::IAM::Role

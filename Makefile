@@ -22,6 +22,7 @@ create_global_resources:
 		--stack-name global \
 		--parameters \
 			ParameterKey=Environment,ParameterValue="production" \
+			ParameterKey=AppName,ParameterValue=$(AppName) \
 		--template-body file://configuration/cloudformation/global/global.yaml \
 		--capabilities CAPABILITY_NAMED_IAM
 
