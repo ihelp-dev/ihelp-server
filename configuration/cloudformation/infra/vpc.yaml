@@ -15,18 +15,20 @@ Parameters:
     Type: String
     Description: "Name of the application"
 
+  #Total 128 address /25
+  #/27: 30 address each
 Mappings:
   SubnetConfig:
     VPC:
-      CIDR: '10.30.0.0/16'
+      CIDR: '172.16.1.0/25'
     PublicOne:
-      CIDR: '10.30.0.0/20'
+      CIDR: '172.16.1.0/27'
     PublicTwo:
-      CIDR: '10.30.16.0/20'
+      CIDR: '172.16.1.32/27'
     PrivateOne:
-      CIDR: '10.30.32.0/20'
+      CIDR: '172.16.1.64/27'
     PrivateTwo:
-      CIDR: '10.30.48.0/20'
+      CIDR: '172.16.1.96/27'
 
 Resources:
   VPC:
