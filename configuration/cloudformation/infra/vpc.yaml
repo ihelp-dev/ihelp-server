@@ -20,15 +20,15 @@ Parameters:
 Mappings:
   SubnetConfig:
     VPC:
-      CIDR: '172.16.0.0/25'
+      CIDR: '10.0.0.0/16'
     PublicOne:
-      CIDR: '172.16.0.0/30'
+      CIDR: '10.0.0.0/24'
     PublicTwo:
-      CIDR: '172.16.0.4/30'
+      CIDR: '10.0.1.0/24'
     PrivateOne:
-      CIDR: '172.16.0.32/27'
+      CIDR: '10.0.1.0/24'
     PrivateTwo:
-      CIDR: '172.16.0.64/26'
+      CIDR: '10.0.1.0/24'
 
 Resources:
   VPC:
