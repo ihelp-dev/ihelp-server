@@ -45,6 +45,9 @@ create_pipeline_prod:
 		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
 delete_pipeline:
+	$(eval artificatsBucket=$(AppName)-$(Environment)-codepipeline-artifacts)
+	$(aws) s3 rm s3://$(artificatsBucket) --recursive
+
 	$(aws) cloudformation delete-stack \
 		--stack-name "main"
 
@@ -80,12 +83,7 @@ docker_local:
 	docker build . -t ${AppName}:local --build-arg NODE_IMAGE=${NODE_IMAGE}
 	docker run -p 8001:3001 ${AppName}:local
 
-
-setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
+setup_prod_infra: validate_templates docker_login create_global_resources create_pipeline_prod init_node_image
 	echo "Infra created"
 
-delete_infra:
-	$(eval artificatsBucket=$(AppName)-$(Environment)-codepipeline-artifacts)
-	$(aws) s3 rm s3://$(artificatsBucket) --recursive
-	delete_pipeline
-	delete_global_resources	
+delete_infra: delete_pipeline delete_global_resources 
