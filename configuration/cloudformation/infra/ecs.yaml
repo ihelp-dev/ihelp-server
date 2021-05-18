@@ -106,7 +106,7 @@ Resources:
       ExecutionRoleArn: !ImportValue ECSTaskExecutionRole
       ContainerDefinitions:
         - Name: !Sub ${AppName}-${Environment}-container-def
-          Image: ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-${Environment} 
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-${Environment} 
           Essential: true
           PortMappings:
             - ContainerPort: !Ref ContainerPort
