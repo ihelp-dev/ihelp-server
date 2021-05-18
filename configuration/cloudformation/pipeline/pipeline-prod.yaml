@@ -126,7 +126,7 @@ Resources:
             Value: !Sub ${AWS::AccountId}
           - Name: NODE_PORT
             Type: PLAINTEXT
-            Value: 3001 ##Port to be exposed (ie port at which node server is running)
+            Value: 8080 ##Port to be exposed (ie port at which node server is running)
         Image: aws/codebuild/standard:3.0
         PrivilegedMode: True
         Type: LINUX_CONTAINER
