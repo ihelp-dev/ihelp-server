@@ -1,4 +1,5 @@
 ARG NODE_IMAGE=node:10
+ARG NODE_PORT=3001
 
 FROM ${NODE_IMAGE}
 
@@ -18,6 +19,6 @@ RUN npm install
 # If you are building your code for production
 # RUN npm ci --only=production
 
-EXPOSE 3001
+EXPOSE ${NODE_PORT}
 
 CMD [ "node", "server.js" ]

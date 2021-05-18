@@ -15,7 +15,7 @@ Environment=production
 aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
 REPO_URI=776006903638.dkr.ecr.$(REGION).amazonaws.com
 NODE_IMAGE=$(REPO_URI)/node
-IMAGE_URI=$(REPO_URI)/$(AppName)_$(Environment)
+IMAGE_URI=$(REPO_URI)/$(AppName)-$(Environment)
 
 create_global_resources:
 	$(aws) cloudformation create-stack \
@@ -89,4 +89,11 @@ init_node_image:
 
 docker_local:
 	docker build . -t ${AppName}:local --build-arg NODE_IMAGE=${NODE_IMAGE}
-	docker run -p 8001:3001 ${AppName}:local 
+	docker run -p 8001:3001 ${AppName}:local
+
+
+setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
+	echo "Infra created"
+	
+
+		

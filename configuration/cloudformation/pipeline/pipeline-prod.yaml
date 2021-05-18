@@ -117,13 +117,16 @@ Resources:
             Value: !Sub ${Environment}
           - Name: IMAGE_URI
             Type: PLAINTEXT
-            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}_${Environment}
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-${Environment}
           - Name: NODE_URI
             Type: PLAINTEXT
             Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/node
           - Name: AWS_ACCOUNT_ID
             Type: PLAINTEXT
             Value: !Sub ${AWS::AccountId}
+          - Name: NODE_PORT
+            Type: PLAINTEXT
+            Value: 3001 ##Port to be exposed (ie port at which node server is running)
         Image: aws/codebuild/standard:3.0
         PrivilegedMode: True
         Type: LINUX_CONTAINER
@@ -226,7 +229,25 @@ Resources:
                   }
               RunOrder: 3
 
-            - Name: UpdateECS
+        - Name: Build
+          Actions:
+            - Name: CodeBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: SourceCodeOutputArtifact
+              OutputArtifacts:
+                - Name: BuildOutputArtifact
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              RunOrder: 1
+
+        - Name: Deploy
+          Actions:
+            - Name: DeployToECS
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -246,22 +267,6 @@ Resources:
                     "AppName" : "${AppName}"
                   }
               RunOrder: 3
-
-        - Name: Build
-          Actions:
-            - Name: CodeBuild
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Version: 1
-                Provider: CodeBuild
-              InputArtifacts:
-                - Name: SourceCodeOutputArtifact
-              OutputArtifacts:
-                - Name: BuildOutputArtifact
-              Configuration:
-                ProjectName: !Ref CodeBuildProject
-              RunOrder: 1
 
 Outputs:
   CodePipelineBucket:

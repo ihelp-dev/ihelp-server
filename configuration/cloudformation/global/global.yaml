@@ -130,6 +130,20 @@ Resources:
                   - ecr:BatchGetImage
                 Resource: '*'
 
+  #Task Execution Role
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
   APIGatewayInvokeFullAccessRole:
     Type: AWS::IAM::Role
@@ -201,4 +215,10 @@ Outputs:
     Value: !GetAtt CloudWatchRole.Arn
     Export:
       Name: CloudWatchRole
+
+  ECSTaskExecutionRole:
+    Description: Role used by ecs task services
+    Value: !GetAtt ECSTaskExecutionRole.Arn
+    Export:
+      Name: ECSTaskExecutionRole
       

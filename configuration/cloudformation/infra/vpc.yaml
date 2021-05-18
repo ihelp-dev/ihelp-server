@@ -20,9 +20,13 @@ Mappings:
     VPC:
       CIDR: '10.192.0.0/16'
     PublicOne:
-      CIDR: '10.192.10.0/24'
+      CIDR: '10.0.1.0/24'
+    PublicTwo:
+      CIDR: '10.0.2.0/24'
     PrivateOne:
       CIDR: '10.192.20.0/24'
+    PrivateTwo:
+      CIDR: '10.192.30.0/24'
 
 Resources:
   VPC:
@@ -39,13 +43,24 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC 
-      AvailabilityZone: !Select [0, !GetAZs ""]
+      AvailabilityZone: !Select  [ 0, !GetAZs ""]
       CidrBlock: !FindInMap ['SubnetConfig', 'PublicOne', 'CIDR']
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: !Sub ${AppName}-${Environment}-public-subnet
-  
+
+  PublicSubnetTwo:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC 
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !FindInMap ['SubnetConfig', 'PublicTwo', 'CIDR']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${AppName}-${Environment}-public-subnet2
+
   PrivateSubnetOne:
     Type: AWS::EC2::Subnet
     Properties:
@@ -56,6 +71,17 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${AppName}-${Environment}-private-subnet
+
+  PrivateSubnetTwo:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !FindInMap ['SubnetConfig', 'PrivateTwo', 'CIDR']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${AppName}-${Environment}-private-subnet2
 
   ######## Create Internet gateway and Attach Internet Gateway to VPC #######
   InternetGateway:
@@ -93,6 +119,12 @@ Resources:
       SubnetId: !Ref PublicSubnetOne
       RouteTableId: !Ref PublicRouteTable
 
+  PublicSubnetTwoRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetTwo
+      RouteTableId: !Ref PublicRouteTable
+
   # Setup networking resources for the private subnets. Containers
   # in these subnets have only private IP addresses, and must use a NAT
   # gateway to talk to the internet. We launch NAT gateways, one for
@@ -102,13 +134,25 @@ Resources:
     DependsOn: InternetGateway 
     Properties:
       Domain: vpc
-  
+
+  NatGatewayTwoAttachment:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGateway 
+    Properties:
+      Domain: vpc
+
   NatGatewayOne:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayOneAttachment.AllocationId
       SubnetId: !Ref PublicSubnetOne
   
+  NatGatewayTwo:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayTwoAttachment.AllocationId
+      SubnetId: !Ref PublicSubnetTwo
+
   PrivateRouteTableOne:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -127,43 +171,190 @@ Resources:
       RouteTableId: !Ref PrivateRouteTableOne
       SubnetId: !Ref PrivateSubnetOne
 
+  PrivateRouteTableTwo:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+
+  PrivateRouteTwo:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableTwo
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayTwo
+
+  PrivateRouteTableTwoAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableTwo
+      SubnetId: !Ref PrivateSubnetTwo
+
+
+
   #---------------------------------------------------------------------
-  # Deploy NLB
+  # Deploy Security groups used by fargate service containers
   #---------------------------------------------------------------------
-  PrivateNetworkLoadBalancer:
+  # A security group for the containers we will run in Fargate.
+  # Three rules, allowing network traffic from a public facing load
+  # balancer, a private internal load balancer, and from other members
+  # of the security group.
+  #
+  # Remove any of the following ingress rules that are not needed.
+  FargateContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the Fargate containers
+      VpcId: !Ref 'VPC'
+  EcsSecurityGroupIngressFromPublicALB:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from the public ALB
+      GroupId: !Ref 'FargateContainerSecurityGroup'
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref 'PublicLoadBalancerSG'
+  EcsSecurityGroupIngressFromPrivateALB:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from the private ALB
+      GroupId: !Ref 'FargateContainerSecurityGroup'
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref 'PrivateLoadBalancerSG'
+  EcsSecurityGroupIngressFromSelf:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from other containers in the same security group
+      GroupId: !Ref 'FargateContainerSecurityGroup'
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref 'FargateContainerSecurityGroup'
+
+
+
+
+  #---------------------------------------------------------------------
+  # Deploy Load Balancers
+  #---------------------------------------------------------------------
+  # Load balancers for getting traffic to containers.
+  # - One public load balancer, hosted in public subnets that is accessible
+  #   to the public, and is intended to route traffic to one or more public
+  #   facing services.
+
+  # - One private load balancer, hosted in private subnets, that only
+  #   accepts traffic from other containers in the cluster, and is
+  #   intended for private services that should not be accessed directly
+  #   by the public.
+
+  # A public facing load balancer, this is used for accepting traffic from the public
+  # internet and directing it to public facing microservices
+  PublicLoadBalancerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the public facing load balancer
+      VpcId: !Ref 'VPC'
+      SecurityGroupIngress:
+          # Allow access to ALB from anywhere on the internet
+          - CidrIp: 0.0.0.0/0
+            IpProtocol: -1
+
+  PublicLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Type: network
-      Scheme: internal
-      Name: !Sub "${AppName}-${Environment}-nlb"
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+      - Key: idle_timeout.timeout_seconds
+        Value: '30'
       Subnets:
-        - !Ref PrivateSubnetOne
+        # The load balancer is placed into the public subnets, so that traffic
+        # from the internet can reach the load balancer directly via the internet gateway
+        - !Ref PublicSubnetOne
+        - !Ref PublicSubnetTwo
+      SecurityGroups: [!Ref 'PublicLoadBalancerSG']
 
-  NLBTargetGroup:
+  # A dummy target group is used to setup the ALB to just drop traffic
+  # initially, before any real service target groups have been added.
+  DummyTargetGroupPublic:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${AppName}-${Environment}-tr-grp
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: !Sub '${AppName}-${Environment}-drop-1'
       Port: 80
-      Protocol: TCP
-      TargetType: ip
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
       VpcId: !Ref 'VPC'
-      HealthCheckIntervalSeconds: 10
-      HealthCheckProtocol: TCP
-      HealthCheckTimeoutSeconds: 10
-      HealthyThresholdCount: 3
-      UnhealthyThresholdCount: 3
 
-  NLBListener:
+  PublicLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+      - PublicLoadBalancer
     Properties:
       DefaultActions:
-      - Type: forward
-        TargetGroupArn:
-          Ref: NLBTargetGroup
-      LoadBalancerArn:
-        Ref: PrivateNetworkLoadBalancer
+        - TargetGroupArn: !Ref 'DummyTargetGroupPublic'
+          Type: 'forward'
+      LoadBalancerArn: !Ref 'PublicLoadBalancer'
       Port: 80
-      Protocol: TCP
+      Protocol: HTTP
+
+  # An internal load balancer, this would be used for a service that is not
+  # directly accessible to the public, but instead should only receive traffic
+  # from your other services.
+  PrivateLoadBalancerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the internal load balancer
+      VpcId: !Ref 'VPC'
+
+  PrivateLoadBalancerIngressFromECS:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Only accept traffic from a container in the fargate container security group
+      GroupId: !Ref 'PrivateLoadBalancerSG'
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref 'FargateContainerSecurityGroup'
+
+  PrivateLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internal
+      LoadBalancerAttributes:
+      - Key: idle_timeout.timeout_seconds
+        Value: '30'
+      Subnets:
+        # This load balancer is put into the private subnet, so that there is no
+        # route for the public to even be able to access the private load balancer.
+        - !Ref PrivateSubnetOne
+        - !Ref PrivateSubnetTwo
+      SecurityGroups: [!Ref 'PrivateLoadBalancerSG']
+
+  # This dummy target group is used to setup the ALB to just drop traffic
+  # initially, before any real service target groups have been added.
+  DummyTargetGroupPrivate:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: !Sub '${AppName}-${Environment}-drop-2' 
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId: !Ref 'VPC'
+
+  PrivateLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+      - PrivateLoadBalancer
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref 'DummyTargetGroupPrivate'
+          Type: 'forward'
+      LoadBalancerArn: !Ref 'PrivateLoadBalancer'
+      Port: 80
+      Protocol: HTTP
 
 Outputs:
   VPC:
@@ -184,6 +375,12 @@ Outputs:
     Export:
       Name: !Sub '${AppName}-${Environment}-PrivateSubnets'
 
+  PublicSubnetTwo:
+    Description: A reference to the public subnet in the 1st Availability Zone
+    Value: !Ref PublicSubnetTwo
+    Export:
+      Name: !Sub '${AppName}-${Environment}-PublicSubnetTwo'
+
   PublicSubnetOne:
     Description: A reference to the public subnet in the 1st Availability Zone
     Value: !Ref PublicSubnetOne
@@ -196,14 +393,44 @@ Outputs:
     Export:
       Name: !Sub '${AppName}-${Environment}-PrivateSubnetOne'
 
+  PrivateSubnetTwo:
+    Description: A reference to the private subnet in the 1st Availability Zone
+    Value: !Ref PrivateSubnetTwo
+    Export:
+      Name: !Sub '${AppName}-${Environment}-PrivateSubnetTwo'
+
   PrivateRouteTableOne:
     Description: A reference to the private route table in the 1st Availability Zone
     Value: !Ref PrivateRouteTableOne
     Export:
       Name: !Sub ${AppName}-${Environment}-PrivateRouteTableOne
 
-  NLBListener:
-    Description: A reference to the private route table in the 1st Availability Zone
-    Value: !Ref NLBListener
+  PublicLoadBalancerListener:
+    Description: The ARN of the private load balancer's Listener
+    Value: !Ref PublicLoadBalancerListener
     Export:
-      Name: !Sub ${AppName}-${Environment}-NLBListener
+      Name: !Sub ${AppName}-${Environment}-PublicLoadBalancerListener
+
+  PrivateLoadBalancerListener:
+    Description: The ARN of the private load balancer's Listener
+    Value: !Ref PrivateLoadBalancerListener
+    Export:
+      Name: !Sub ${AppName}-${Environment}-PrivateLoadBalancerListener
+
+  InternalUrl:
+    Description: The url of the internal load balancer
+    Value: !Join ['', ['http://', !GetAtt 'PrivateLoadBalancer.DNSName']]
+    Export:
+      Name: !Sub ${AppName}-${Environment}-InternalUrl
+
+  ExternalUrl:
+    Description: The url of the external load balancer
+    Value: !Join ['', ['http://', !GetAtt 'PublicLoadBalancer.DNSName']]
+    Export:
+      Name: !Sub ${AppName}-${Environment}-ExternalUrl
+  
+  FargateContainerSecurityGroup:
+    Description: A security group used to allow Fargate containers to receive traffic
+    Value: !Ref 'FargateContainerSecurityGroup'
+    Export:
+      Name: !Sub ${AppName}-${Environment}-FargateContainerSecurityGroup 
