@@ -139,7 +139,7 @@ Resources:
             - Fn::ImportValue:
                 !Sub ${AppName}-${Environment}-PrivateSubnetTwo
       LoadBalancers:
-        - ContainerName: !Sub ${AppName}-${Environment}-fargate-container
+        - ContainerName: !Sub ${AppName}-${Environment}-container-def
           ContainerPort: !Ref ContainerPort
           TargetGroupArn: !Ref TargetGroup
 
