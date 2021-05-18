@@ -235,10 +235,7 @@ Resources:
                   }
               RunOrder: 3
 
-
-        - Name: Deploy
-          Actions:
-            - Name: DeployToECS
+            - Name: UpdateECSStack
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -259,7 +256,7 @@ Resources:
                     "AppName" : "${AppName}"
                   }
               RunOrder: 3
-
+              
         - Name: Execute
           Actions:
             - Name: ExecutePipelineChangeSet
@@ -272,7 +269,7 @@ Resources:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: pipelinechangeset
                 RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub SourceCodeOutputArtifact::configuration/cloudformation/pipeline/pipeline-prod.yaml
+                StackName: !Sub ${AWS::StackName} 
                 Capabilities: CAPABILITY_IAM
               RunOrder: 1
 
@@ -286,7 +283,7 @@ Resources:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: globalchangeset
                 RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
+                StackName: global 
                 Capabilities: CAPABILITY_IAM
               RunOrder: 2
             
@@ -300,7 +297,7 @@ Resources:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: vpcchangeset
                 RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub SourceCodeOutputArtifact::configuration/cloudformation/infra/vpc.yaml
+                StackName: !Sub ${AppName}-${Environment}-vpc
                 Capabilities: CAPABILITY_IAM
               RunOrder: 3
             
@@ -314,7 +311,7 @@ Resources:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: vpcchangeset
                 RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub SourceCodeOutputArtifact::configuration/cloudformation/infra/ecs.yaml
+                StackName: !Sub ${AppName}-${Environment}-ecs
                 Capabilities: CAPABILITY_IAM
               RunOrder: 4
         
