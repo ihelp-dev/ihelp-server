@@ -74,7 +74,7 @@ update_pipeline:
 init_node_image:
 	##Should be called after pipeline create ECR repository
 	docker pull node
-	$(aws ecr get-login --no-include-email --region $(REGION))
+	$(aws ecr get-login --no-include-email $(REGION))
 	docker tag node $(NODE_IMAGE):latest
 	docker push "$(NODE_IMAGE):latest"
 
@@ -83,7 +83,7 @@ docker_local:
 	docker build . -t ${AppName}:local --build-arg NODE_IMAGE=${NODE_IMAGE}
 	docker run -p 8001:3001 ${AppName}:local
 
-setup_prod_infra: validate_templates docker_login create_global_resources create_pipeline_prod init_node_image
+setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
 	echo "Infra created"
 
 delete_infra: delete_pipeline delete_global_resources 
