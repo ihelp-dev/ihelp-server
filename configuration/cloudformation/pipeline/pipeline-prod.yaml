@@ -52,7 +52,7 @@ Resources:
   CloudFormationRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AWS::StackName}-${Environment}-cloudformation-role
+      RoleName: !Sub ${AppName}-${Environment}-cloudformation-role
       AssumeRolePolicyDocument:
         Statement:
         - Effect: Allow
@@ -69,7 +69,7 @@ Resources:
     DependsOn: CloudFormationRole 
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AWS::StackName}-${Environment}-codebuild-role
+      RoleName: !Sub ${AppName}-${Environment}-codebuild-role
       AssumeRolePolicyDocument:
         Statement:
           - Action: ['sts:AssumeRole']
@@ -84,7 +84,7 @@ Resources:
     DependsOn: CloudFormationRole 
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AWS::StackName}-${Environment}-codepipeline-role
+      RoleName: !Sub ${AppName}-${Environment}-codepipeline-role
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow

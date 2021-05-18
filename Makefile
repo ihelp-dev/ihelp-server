@@ -9,8 +9,8 @@ GitHubToken=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
 GitHubRepoOwner=ihelp-dev
 
 ACCOUNTNAME=covid
-AppName=$(GitHubRepoName)
-REGION=us-west-2
+REGION=us-west-1
+AppName=$(GitHubRepoName)-$(REGION)
 Environment=production
 aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
 REPO_URI=776006903638.dkr.ecr.$(REGION).amazonaws.com
@@ -94,6 +94,8 @@ docker_local:
 
 setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
 	echo "Infra created"
+
+delete_infra:  delete_pipeline delete_global_resources
 	
 
 		
