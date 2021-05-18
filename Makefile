@@ -24,23 +24,11 @@ create_global_resources:
 			ParameterKey=Environment,ParameterValue="production" \
 			ParameterKey=AppName,ParameterValue=$(AppName) \
 		--template-body file://configuration/cloudformation/global/global.yaml \
-		--capabilities CAPABILITY_NAMED_IAM
-
-create_vpc_resources:
-	$(aws) cloudformation create-stack \
-		--stack-name "$(StackName)-vpc" \
-		--parameters \
-			ParameterKey=Environment,ParameterValue=$(Environment) \
-		--template-body file://configuration/cloudformation/infra/vpc.yaml \
-		--capabilities CAPABILITY_NAMED_IAM
+		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
 delete_global_resources:
 	$(aws) cloudformation delete-stack \
 		--stack-name global
-
-delete_vpc_resources:
-	$(aws) cloudformation delete-stack \
-		--stack-name $(StackName)-vpc
 
 
 create_pipeline_prod:
