@@ -61,7 +61,7 @@ Resources:
       VpcId: !Ref VPC 
       AvailabilityZone:
         Fn::Select: 
-        - 0
+        - 1
         - Fn::GetAZs: {Ref: 'AWS::Region'}
       CidrBlock: !FindInMap ['SubnetConfig', 'PublicTwo', 'CIDR']
       MapPublicIpOnLaunch: true
@@ -89,7 +89,7 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone:
         Fn::Select: 
-        - 0
+        - 1
         - Fn::GetAZs: {Ref: 'AWS::Region'}
       CidrBlock: !FindInMap ['SubnetConfig', 'PrivateTwo', 'CIDR']
       MapPublicIpOnLaunch: false
