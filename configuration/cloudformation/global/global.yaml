@@ -193,6 +193,12 @@ Resources:
     Properties:
       RepositoryName: node
 
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/${AppName}-${Environment}"
+
 Outputs:
 
   AutoscalingRole:
@@ -230,4 +236,9 @@ Outputs:
     Value: !GetAtt ECSTaskExecutionRole.Arn
     Export:
       Name: ECSTaskExecutionRole
-      
+  
+  LogGroup:
+    Description: Cloudwatch log group 
+    Value: !Ref LogGroup
+    Export:
+      Name: LogGroup 

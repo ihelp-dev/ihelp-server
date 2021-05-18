@@ -42,6 +42,27 @@ Parameters:
   # 2GB, 3GB, 4GB, 5GB, 6GB, 7GB, 8GB - Available cpu values: 1024 (1 vCPU)
   # Between 4GB and 16GB in 1GB increments - Available cpu values: 2048 (2 vCPU)
   # Between 8GB and 30GB in 1GB increments - Available cpu values: 4096 (4 vCPU)
+
+#  Mappings:
+#   iHelpServerTaskDefinitionMap:
+#     Production:
+#       "Memory" : 1024
+#       "Cpu" : 512
+#       "ContainerName" : !Sub ${AppName}-${Environment}-api-server
+#       "ContainerImage" : !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-${Environment}
+#       "ContainerPort" : 8080
+#       "HostPort" : 0
+#       "ContainerMemory" : 1024
+
+#   Development:
+#       "Memory" : 1024
+#       "Cpu" : 512
+#       "ContainerName" : !Sub ${AppName}-${Environment}-api-server
+#       "ContainerImage" : !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-${Environment}
+#       "ContainerPort" : 8080
+#       "HostPort" : 0
+#       "ContainerMemory" : 1024
+
 Mappings:
   TaskConfig:
     MinTask:
@@ -66,10 +87,6 @@ Resources:
     Properties:
       ClusterName: !Sub ${AppName}-${Environment}-cluster
 
-  ECSLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/ecs/${AppName}-${Environment}"
 
   # A target group. This is used for keeping track of all the tasks, and
   # what IP addresses / port numbers they have. You can query it yourself,
@@ -114,7 +131,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-region: !Ref AWS::Region
-              awslogs-group: !Ref ECSLogGroup
+              awslogs-group: !ImportValue LogGroup
               awslogs-stream-prefix: ecs
   
   #ECS fargate service: Addition or Deletion for tasks.

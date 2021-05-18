@@ -57,8 +57,7 @@ validate_templates:
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/infra/ecs.yaml 1>/dev/null
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/infra/vpc.yaml 1>/dev/null
 	
-update_pipeline:
-	validate_templates
+update_pipeline: validate_templates
 	$(aws) cloudformation update-stack \
 		--stack-name main \
 		--template-body file://configuration/cloudformation/pipeline/pipeline-prod.yaml \
@@ -72,9 +71,8 @@ update_pipeline:
 		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
 init_node_image:
-	##Should be called after pipeline create ECR repository
 	docker pull node
-	$(aws ecr get-login --no-include-email $(REGION))
+	$(aws ecr get-login --no-include-email --region $(REGION))
 	docker tag node $(NODE_IMAGE):latest
 	docker push "$(NODE_IMAGE):latest"
 
