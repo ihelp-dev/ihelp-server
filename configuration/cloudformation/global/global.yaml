@@ -187,6 +187,12 @@ Resources:
       ManagedPolicyArns:
        - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
 
+    ##This is required before build.     
+  NodeECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: node
+
 Outputs:
 
   AutoscalingRole:
