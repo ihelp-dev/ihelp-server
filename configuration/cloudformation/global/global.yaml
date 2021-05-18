@@ -14,12 +14,12 @@ Parameters:
   AppName:
     Type: String
     Description: "Name of the application"
-    
+
 Resources:
   AutoscalingRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AppName}-${Environment}-Autoscaling-role
+      RoleName: !Sub ${AppName}-${Environment}-${AWS::Region}-Autoscaling-role
       AssumeRolePolicyDocument:
         Statement:
         - Effect: Allow
@@ -28,7 +28,7 @@ Resources:
           Action: ['sts:AssumeRole']
       Path: /
       Policies:
-      - PolicyName: !Sub ${AppName}-${Environment}-AutoscalingRole-policy
+      - PolicyName: !Sub ${AppName}-${Environment}-${AWS::Region}-AutoscalingRole-policy
         PolicyDocument:
           Statement:
           - Effect: Allow
@@ -46,7 +46,7 @@ Resources:
   Ec2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AppName}-${Environment}-EC2Instance-role
+      RoleName: !Sub ${AppName}-${Environment}-${AWS::Region}-EC2Instance-role
       AssumeRolePolicyDocument:
         Statement:
         - Effect: Allow
@@ -55,7 +55,7 @@ Resources:
           Action: ['sts:AssumeRole']
       Path: /
       Policies:
-      - PolicyName: !Sub ${AppName}-${Environment}-Ec2InstanceRole-policy
+      - PolicyName: !Sub ${AppName}-${Environment}-${AWS::Region}-Ec2InstanceRole-policy
         PolicyDocument:
           Statement:
           - Effect: Allow
@@ -78,7 +78,7 @@ Resources:
   ECSRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AppName}-${Environment}-ecs-role
+      RoleName: !Sub ${AppName}-${Environment}-${AWS::Region}-ecs-role
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -88,7 +88,7 @@ Resources:
             Action: ['sts:AssumeRole']
       Path: /
       Policies:
-        - PolicyName: !Sub ${AppName}-${Environment}-ecs-role-policy
+        - PolicyName: !Sub ${AppName}-${Environment}-${AWS::Region}-ecs-role-policy
           PolicyDocument:
             Statement:
               - Effect: Allow
@@ -151,7 +151,7 @@ Resources:
   APIGatewayInvokeFullAccessRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AppName}-${Environment}-ApiGateway-full-access-role 
+      RoleName: !Sub ${AppName}-${Environment}-${AWS::Region}-ApiGateway-full-access-role 
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -161,7 +161,7 @@ Resources:
             Condition: {}
       Path: /
       Policies:
-        - PolicyName: !Sub ${AppName}-${Environment}-api-gateway-full-access-role-policy
+        - PolicyName: !Sub ${AppName}-${Environment}-${AWS::Region}-api-gateway-full-access-role-policy
           PolicyDocument:
             Statement:
               - Effect: Allow
@@ -173,7 +173,7 @@ Resources:
   CloudWatchRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Sub ${AppName}-${Environment}-cloudwatch-role
+      RoleName: !Sub ${AppName}-${Environment}-${AWS::Region}-cloudwatch-role
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

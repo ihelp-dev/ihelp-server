@@ -204,7 +204,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: global
-                TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
+                TemplatePath: !Sub SourceCodeOutputArtifact::configuration/cloudformation/global/global.yaml
                 ParameterOverrides: !Sub |
                   {
                     "AppName" : "${AppName}"

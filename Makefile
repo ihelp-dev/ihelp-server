@@ -9,8 +9,8 @@ GitHubToken=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
 GitHubRepoOwner=ihelp-dev
 
 ACCOUNTNAME=covid
-REGION=us-west-1
-AppName=$(GitHubRepoName)-$(REGION)
+REGION=us-west-2
+AppName=$(GitHubRepoName)
 Environment=production
 aws=aws --profile $(ACCOUNTNAME) --region $(REGION)
 REPO_URI=776006903638.dkr.ecr.$(REGION).amazonaws.com
@@ -96,7 +96,8 @@ docker_local:
 setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
 	echo "Infra created"
 
-delete_infra:  delete_pipeline delete_global_resources
-	
-
-		
+delete_infra:
+	$(eval artificatsBucket=$(AppName)-$(Environment)-codepipeline-artifacts)
+	$(aws) s3 rm s3://$(artificatsBucket) --recursive
+	delete_pipeline
+	delete_global_resources	
