@@ -24,9 +24,9 @@ Mappings:
     PublicTwo:
       CIDR: '10.0.2.0/24'
     PrivateOne:
-      CIDR: '10.0.20.0/24'
+      CIDR: '10.0.3.0/24'
     PrivateTwo:
-      CIDR: '10.0.30.0/24'
+      CIDR: '10.0.4.0/24'
 
 Resources:
   VPC:
