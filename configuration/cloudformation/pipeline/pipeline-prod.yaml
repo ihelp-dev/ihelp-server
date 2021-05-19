@@ -26,6 +26,11 @@ Parameters:
     Default: '{{resolve:secretsmanager:github/personal-access-token:SecretString}}'
     Description: GitHub Token. Must be defined in AWS Secrets Manager and here https://github.com/settings/tokens
 
+  ContainerPort:
+    Type: String
+    Description: "Port at which node server is running"
+    Default: 8081
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -126,7 +131,7 @@ Resources:
             Value: !Sub ${AWS::AccountId}
           - Name: NODE_PORT
             Type: PLAINTEXT
-            Value: 8080 ##Port to be exposed (ie port at which node server is running)
+            Value: !Sub ContainerPort ##Port to be exposed (ie port at which node server is running)
         Image: aws/codebuild/standard:3.0
         PrivilegedMode: True
         Type: LINUX_CONTAINER
@@ -317,7 +322,8 @@ Resources:
                 ParameterOverrides: !Sub |
                   {
                     "Environment": "${Environment}",
-                    "AppName" : "${AppName}"
+                    "AppName" : "${AppName}",
+                    "ContainerPort": "${ContainerPort}"
                   }
               RunOrder: 1
 
