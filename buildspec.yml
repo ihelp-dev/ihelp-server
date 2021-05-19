@@ -31,7 +31,7 @@ phases:
       - echo Building images...
       - echo "Current working directory"
       - pwd
-      - docker build . -t ${IMAGE_URI}:${IMAGE_TAG} --build-arg NODE_IMAGE=${NODE_URI}:latest --build-arg NODE_PORT=${NODE_PORT}
+      - docker build . -t ${IMAGE_URI}:${IMAGE_TAG} --build-arg NODE_IMAGE=${NODE_URI}:latest
       - echo Tag the docker image
       - docker tag ${NODE_URI}:latest ${IMAGE_URI}:${IMAGE_TAG}
 
