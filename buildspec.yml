@@ -18,7 +18,7 @@ phases:
       - echo Image tag
       - APP_NAME=${APP_NAME}
       - echo Building for application ${APP_NAME}
-      - ENV = ${ENV}
+      - ENV=${ENV}
       - echo Application Environment ${ENV}
       - echo node image uri
       - echo ${NODE_URI}
