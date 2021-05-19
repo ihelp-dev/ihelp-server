@@ -12,16 +12,15 @@ phases:
       - docker --version
       - echo node port
       - NODE_PORT=$NODE_PORT
-      - echo image uri
-      - echo ${IMAGE_URI}
-      - IMAGE_TAG=latest
-      - echo Image tag
+      - echo image uri ${IMAGE_URI}
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - echo Image tag ${IMAGE_TAG}
       - APP_NAME=${APP_NAME}
       - echo Building for application ${APP_NAME}
       - ENV=${ENV}
       - echo Application Environment ${ENV}
-      - echo node image uri
-      - echo ${NODE_URI}
+      - echo node image uri ${NODE_URI}
       - CONTAINER_NAME=${APP_NAME}-${ENV}-container-def
       - echo Using container path ${CONTAINER_NAME}
       - echo Logging in to Amazon ECR...
@@ -35,9 +34,9 @@ phases:
       - echo Building images...
       - echo "Current working directory"
       - pwd
-      - docker build . -t ${IMAGE_URI}:${IMAGE_TAG} --build-arg NODE_IMAGE=${NODE_URI}:latest
+      - docker build . -t ${IMAGE_URI}:latest --build-arg NODE_IMAGE=${NODE_URI}:latest
       - echo Tag the docker image
-      - docker tag ${NODE_URI}:latest ${IMAGE_URI}:${IMAGE_TAG}
+      - docker tag ${IMAGE_URI}:latest ${IMAGE_URI}:${IMAGE_TAG}
 
   post_build:
     commands:
