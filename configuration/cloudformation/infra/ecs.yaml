@@ -76,11 +76,6 @@ Mappings:
 
 Resources:
 
-  ImageECR:
-    Type: AWS::ECR::Repository
-    Properties:
-      RepositoryName: !Sub ${AppName}-${Environment}
-    
   #ECS fargate cluster
   ECSCluster:
     Type: AWS::ECS::Cluster

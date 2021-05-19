@@ -72,7 +72,8 @@ update_pipeline: validate_templates
 
 init_node_image:
 	docker pull node
-	eval $(aws ecr get-login --no-include-email --region $(REGION) --profile $(ACCOUNTNAME))
+	aws --region $(REGION) ecr get-login-password  | docker login --username AWS --password-stdin $(REPO_URI)
+	$(aws ecr get-login --no-include-email $(REGION))
 	docker tag node $(NODE_IMAGE):latest
 	docker push "$(NODE_IMAGE):latest"
 

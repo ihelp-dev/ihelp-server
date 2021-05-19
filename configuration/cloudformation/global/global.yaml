@@ -193,6 +193,10 @@ Resources:
     Properties:
       RepositoryName: node
 
+  ImageECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub ${AppName}-${Environment}
 
   LogGroup:
     Type: AWS::Logs::LogGroup
