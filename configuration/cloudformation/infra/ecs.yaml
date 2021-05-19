@@ -75,7 +75,6 @@ Mappings:
       Val: 2048
 
 Resources:
-
   #ECS fargate cluster
   ECSCluster:
     Type: AWS::ECS::Cluster
@@ -173,3 +172,17 @@ Resources:
         Fn::ImportValue:
           !Sub ${AppName}-${Environment}-PublicLoadBalancerListener
       Priority: !Ref 'Priority'
+
+Outputs:
+  ECSFargateService:
+    Description: ECS fargate service
+    Value: !Ref ECSFargateService
+    Export:
+      Name: !Sub ${AppName}-${Environment}-ECSFargateService
+
+  ECSCluster:
+    Description: ECS cluster
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub ${AppName}-${Environment}-ECSCluster
+  

@@ -241,6 +241,29 @@ Resources:
                   }
               RunOrder: 3
 
+            - Name: UpdateECSStack
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceCodeOutputArtifact
+              Configuration:
+                ActionMode: CHANGE_SET_REPLACE
+                Capabilities: CAPABILITY_NAMED_IAM
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub ${AppName}-${Environment}-ecs
+                ChangeSetName: ecschangeset
+                TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/infra/ecs.yaml
+                ParameterOverrides: !Sub |
+                  {
+                    "Environment": "${Environment}",
+                    "AppName" : "${AppName}",
+                    "ContainerPort": "${ContainerPort}"
+                  }
+              RunOrder: 1
+
         - Name: Execute
           Actions:
             - Name: ExecutePipelineChangeSet
@@ -285,7 +308,6 @@ Resources:
                 Capabilities: CAPABILITY_IAM
               RunOrder: 3
             
- 
         - Name: Build
           Actions:
             - Name: CodeBuild
@@ -300,47 +322,27 @@ Resources:
                 - Name: BuildOutputArtifact
               Configuration:
                 ProjectName: !Ref CodeBuildProject
-              RunOrder: 1
-
+              RunOrder: 1           
+              
         - Name: Deploy
           Actions:
-            - Name: UpdateECSStack
+            - Name: DeployToECS
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
-                Provider: CloudFormation
-                Version: '1'
+                Version: 1
+                Provider: ECS
+              Configuration:
+                ClusterName:
+                  Fn::ImportValue:
+                    !Sub ${AppName}-${Environment}-ECSCluster
+                ServiceName:
+                  Fn::ImportValue:
+                    !Sub ${AppName}-${Environment}-ECSFargateService
+                FileName: imagedefinitions.json
               InputArtifacts:
-                - Name: SourceCodeOutputArtifact
-              Configuration:
-                ActionMode: CHANGE_SET_REPLACE
-                Capabilities: CAPABILITY_NAMED_IAM
-                RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub ${AppName}-${Environment}-ecs
-                ChangeSetName: ecschangeset
-                TemplatePath: SourceCodeOutputArtifact::configuration/cloudformation/infra/ecs.yaml
-                ParameterOverrides: !Sub |
-                  {
-                    "Environment": "${Environment}",
-                    "AppName" : "${AppName}",
-                    "ContainerPort": "${ContainerPort}"
-                  }
+                - Name: BuildOutputArtifact
               RunOrder: 1
-
-            - Name: ExecuteEcsChangeSet
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: '1'
-              Configuration:
-                ActionMode: CHANGE_SET_EXECUTE
-                ChangeSetName: ecschangeset
-                RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub ${AppName}-${Environment}-ecs
-                Capabilities: CAPABILITY_IAM
-              RunOrder: 2
-        
 
 Outputs:
   CodePipelineBucket:
