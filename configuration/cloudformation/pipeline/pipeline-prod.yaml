@@ -262,7 +262,7 @@ Resources:
                     "AppName" : "${AppName}",
                     "ContainerPort": "${ContainerPort}"
                   }
-              RunOrder: 1
+              RunOrder: 3
 
         - Name: Execute
           Actions:
@@ -308,6 +308,20 @@ Resources:
                 Capabilities: CAPABILITY_IAM
               RunOrder: 3
             
+            - Name: ExecuteEcsChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                ChangeSetName: ecschangeset
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub ${AppName}-${Environment}-ecs
+                Capabilities: CAPABILITY_IAM
+              RunOrder: 3
+ 
         - Name: Build
           Actions:
             - Name: CodeBuild
@@ -322,8 +336,8 @@ Resources:
                 - Name: BuildOutputArtifact
               Configuration:
                 ProjectName: !Ref CodeBuildProject
-              RunOrder: 1           
-              
+              RunOrder: 1
+
         - Name: Deploy
           Actions:
             - Name: DeployToECS
