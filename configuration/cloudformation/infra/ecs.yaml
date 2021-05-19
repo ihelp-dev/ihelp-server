@@ -121,7 +121,7 @@ Resources:
           Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-${Environment}
           Environment:
             - Name: NODE_PORT
-              Value: !Sub ContainerPort
+              Value: !Ref ContainerPort
           Essential: true
           PortMappings:
             - ContainerPort: !Ref ContainerPort
