@@ -29,7 +29,7 @@ Parameters:
   ContainerPort:
     Type: String
     Description: "Port at which node server is running"
-    Default: 8081
+    Default: 8080
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -131,7 +131,7 @@ Resources:
             Value: !Sub ${AWS::AccountId}
           - Name: NODE_PORT
             Type: PLAINTEXT
-            Value: !Sub ContainerPort ##Port to be exposed (ie port at which node server is running)
+            Value: !Ref ContainerPort ##Port to be exposed (ie port at which node server is running)
         Image: aws/codebuild/standard:3.0
         PrivilegedMode: True
         Type: LINUX_CONTAINER
