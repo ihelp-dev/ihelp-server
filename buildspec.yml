@@ -43,6 +43,7 @@ phases:
       - echo Build completed on `date`
       - echo Push image to ECR
       - docker push ${IMAGE_URI}:${IMAGE_TAG}
+      - docker push ${IMAGE_URI}:latest
       - printf '[{"name":"%s","imageUri":"%s"}]' ${CONTAINER_NAME} ${IMAGE_URI}:${IMAGE_TAG} > imagedefinitions.json
       - cat imagedefinitions.json
 
