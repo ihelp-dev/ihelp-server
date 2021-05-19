@@ -10,7 +10,6 @@ phases:
       - aws --version
       - node --version
       - docker --version
-      - NODE_ENV=$NODE_ENV
       - echo node port
       - NODE_PORT=$NODE_PORT
       - echo image uri

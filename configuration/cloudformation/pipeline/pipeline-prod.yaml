@@ -117,9 +117,6 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
-          - Name: NODE_ENV
-            Type: PLAINTEXT
-            Value: !Sub ${Environment}
           - Name: IMAGE_URI
             Type: PLAINTEXT
             Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${AppName}-${Environment}
@@ -131,7 +128,13 @@ Resources:
             Value: !Sub ${AWS::AccountId}
           - Name: NODE_PORT
             Type: PLAINTEXT
-            Value: !Ref ContainerPort ##Port to be exposed (ie port at which node server is running)
+            Value: !Sub ${ContainerPort} ##Port to be exposed (ie port at which node server is running)
+          - Name: APP_NAME
+            Type: PLAINTEXT
+            Value: !Sub ${AppName}
+          - Name: ENV
+            Type: PLAINTEXT
+            Value: !Sub ${Environment}
         Image: aws/codebuild/standard:3.0
         PrivilegedMode: True
         Type: LINUX_CONTAINER
