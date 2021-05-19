@@ -338,25 +338,7 @@ Resources:
                 ProjectName: !Ref CodeBuildProject
               RunOrder: 1
 
-        - Name: Deploy
-          Actions:
-            - Name: DeployToECS
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: 1
-                Provider: ECS
-              Configuration:
-                ClusterName:
-                  Fn::ImportValue:
-                    !Sub ${AppName}-${Environment}-ECSCluster
-                ServiceName:
-                  Fn::ImportValue:
-                    !Sub ${AppName}-${Environment}-ECSFargateService
-                FileName: imagedefinitions.json
-              InputArtifacts:
-                - Name: BuildOutputArtifact
-              RunOrder: 1
+       
 
 Outputs:
   CodePipelineBucket:
