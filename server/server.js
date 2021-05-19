@@ -3,7 +3,7 @@ var cors = require('cors')
 var morgan = require('morgan')
 
 var app = express()
-var port = process.env.NODE_PORT || 3001
+var port = process.env.NODE_PORT || 8081
 
 app.use(cors())
 app.use(morgan('combined'))
