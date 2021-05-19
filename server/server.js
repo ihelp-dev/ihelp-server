@@ -3,13 +3,18 @@ var cors = require('cors')
 var morgan = require('morgan')
 
 var app = express()
-var port = process.env.NODE_PORT || 8081
+var port = process.env.NODE_PORT || 8080
 
 app.use(cors())
 app.use(morgan('combined'))
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
+})
+
+//Required by ecs service
+app.get('/health', (req, res) => {
+  res.sendStatus(200)
 })
 
 /*
