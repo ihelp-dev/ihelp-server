@@ -130,7 +130,7 @@ Resources:
             Options:
               awslogs-region: !Ref AWS::Region
               awslogs-group: !ImportValue LogGroup
-              awslogs-stream-prefix: ecs
+              awslogs-stream-prefix: ecs/backend
   
   #ECS fargate service: Addition or Deletion for tasks.
   ECSFargateService:
