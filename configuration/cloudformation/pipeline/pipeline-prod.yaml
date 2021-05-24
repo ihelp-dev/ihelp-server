@@ -350,12 +350,8 @@ Resources:
                 Version: 1
                 Provider: ECS
               Configuration:
-                ClusterName:
-                  Fn::ImportValue:
-                    !Sub ${AppName}-${Environment}-ECSCluster
-                ServiceName:
-                  Fn::ImportValue:
-                    !Sub ${AppName}-${Environment}-ECSFargateService
+                ClusterName: !Sub ${AppName}-${Environment}-cluster
+                ServiceName: !Sub ${AppName}-${Environment}-fargate-service
                 FileName: imagedefinitions.json
               InputArtifacts:
                 - Name: BuildOutputArtifact
