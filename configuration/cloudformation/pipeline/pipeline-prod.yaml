@@ -265,7 +265,7 @@ Resources:
                     "AppName" : "${AppName}",
                     "ContainerPort": "${ContainerPort}"
                   }
-              RunOrder: 3
+              RunOrder: 4
 
         - Name: Execute
           Actions:
@@ -323,7 +323,7 @@ Resources:
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub ${AppName}-${Environment}-ecs
                 Capabilities: CAPABILITY_IAM
-              RunOrder: 3
+              RunOrder: 4
  
         - Name: Build
           Actions:
