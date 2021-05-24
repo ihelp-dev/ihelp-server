@@ -8,7 +8,7 @@ var port = process.env.NODE_PORT || 8080
 app.use(cors())
 app.use(morgan('combined'))
 
-app.get('/', (req, res) => {
+app.get('/api/v1/', (req, res) => {
   res.send('Hello World!')
 })
 
