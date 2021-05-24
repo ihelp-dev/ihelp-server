@@ -12,6 +12,10 @@ app.get('/api/v1/', (req, res) => {
   res.send('Hello World!')
 })
 
+app.get('/api/v1/hello', (req, res) => {
+  res.send('Hello!')
+})
+
 //Required by ecs service
 app.get('/health', (req, res) => {
   res.sendStatus(200)
