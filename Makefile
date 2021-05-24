@@ -17,7 +17,7 @@ REPO_URI=776006903638.dkr.ecr.$(REGION).amazonaws.com
 NODE_IMAGE=$(REPO_URI)/node
 IMAGE_URI=$(REPO_URI)/$(AppName)-$(Environment)
 
-create_global_resources:
+create_global_resources: validate_templates
 	$(aws) cloudformation create-stack \
 		--stack-name global \
 		--parameters \
@@ -31,7 +31,7 @@ delete_global_resources:
 		--stack-name global
 
 
-create_pipeline_prod:
+create_pipeline_prod: validate_templates
 	$(aws) cloudformation create-stack \
 		--stack-name "main" \
 		--parameters \
