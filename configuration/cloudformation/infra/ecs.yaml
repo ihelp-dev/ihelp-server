@@ -167,7 +167,8 @@ Resources:
           Type: 'forward'
       Conditions:
         - Field: path-pattern
-          Values: [!Ref 'Path']
+          Values:
+            - "/api/v1/*"
       ListenerArn:
         Fn::ImportValue:
           !Sub ${AppName}-${Environment}-PublicLoadBalancerListener
