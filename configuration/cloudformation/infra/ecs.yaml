@@ -122,6 +122,10 @@ Resources:
           Environment:
             - Name: NODE_PORT
               Value: !Ref ContainerPort
+            - Name: NODE_ENV
+              Value: !Sub ${Envirotnment}
+            - Name: GOOGLE_API_KEY
+              Value: AIzaSyCi-NeTHJ3F60Wd1oatZPuVOyRQo3BotxA
           Essential: true
           PortMappings:
             - ContainerPort: !Ref ContainerPort
