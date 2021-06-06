@@ -34,9 +34,8 @@ async function initGeoTable() {
   Update database using response from google api
   Input: list of google api response
 */
-
 function updateDbFromGApi(hospitalList) {
-    for ( let i in hospitalList) {
+    for (let i in hospitalList) {
         location = hospitalList[i]["geometry"]["location"]
         lat = location["lat"]
         long = location["lng"]
@@ -46,30 +45,30 @@ function updateDbFromGApi(hospitalList) {
 }
 
 function convertToGeoDbResponse(data, lat, long) {
-        params = client.GetDefaultParams()
-        for (const [key, value] of Object.entries(params)) {
-            if (data.hasOwnProperty('name')) {
-                params["name_english"] = data['name']
-            }
-            if (data.hasOwnProperty('business_status')) {
-                params["business_status"] = data.business_status
-            }
-            if (data.hasOwnProperty('vicinity')) {
-                params["landmark"] = data.vicinity
-            }
-            if (data.hasOwnProperty('rating')) {
-                params["ratings"] = data.rating
-            }
-            if (data.hasOwnProperty('user_ratings_total')) {
-                params["user_ratings_total"] = data.user_ratings_total
-            }
-            if (data.hasOwnProperty('opening_hours')) {
-                params["open_now"] = data["opening_hours"]["open_now"]
-            }
+    params = client.GetDefaultParams()
+    for (const [key, value] of Object.entries(params)) {
+        if (data.hasOwnProperty('name')) {
+            params["name_english"] = data['name']
         }
-        params["lat"] = lat
-        params["long"] = long
-        return params
+        if (data.hasOwnProperty('business_status')) {
+            params["business_status"] = data.business_status
+        }
+        if (data.hasOwnProperty('vicinity')) {
+            params["landmark"] = data.vicinity
+        }
+        if (data.hasOwnProperty('rating')) {
+            params["ratings"] = data.rating
+        }
+        if (data.hasOwnProperty('user_ratings_total')) {
+            params["user_ratings_total"] = data.user_ratings_total
+        }
+        if (data.hasOwnProperty('opening_hours')) {
+            params["open_now"] = data["opening_hours"]["open_now"]
+        }
+    }
+    params["lat"] = lat
+    params["long"] = long
+    return params
 }
 
 function mergeDbAndGApiResponse(dbDict, gDict) {
@@ -94,7 +93,7 @@ function mergeDbAndGApiResponse(dbDict, gDict) {
             lat = location["lat"]
             long = location["lng"]
             key = `${lat}:${long}`
-            
+
             if (!_dict.hasOwnProperty(key)) {
                 notInDb.push(gDict[i])
                 _result.push(convertToGeoDbResponse(gDict[i], lat, long)) ///this is required so that client can understand geo db response
@@ -105,7 +104,7 @@ function mergeDbAndGApiResponse(dbDict, gDict) {
         }
     }
     updateDbFromGApi(notInDb)
-    console.log('difference ' , notInDb.length)
+    console.log('difference ', notInDb.length)
     return _result
     //Push difference metrics to cloudwatch metrics
 }
