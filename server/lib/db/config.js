@@ -11,15 +11,18 @@ const geoDdbPort = process.env.GEO_DDB_PORT || 3005;
 function TableManager(tableName) {
   var _ddb
   AWS.config.update({
-    region: REGION,
-    accessKeyId: accessKey ,
-    secretAccessKey: secretAccessKey
+    region: REGION
   })
 
   if (NODE_ENV != 'production' || NODE_ENV != 'staging') {
     _ddb =   new AWS.DynamoDB(/*{ endPoint: new AWS.Endpoint(`http://localhost:${geoDdbPort}`) }*/);
   } else { //production
     _ddb =   new AWS.DynamoDB();
+    AWS.config.update({
+      accessKeyId: accessKey ,
+      secretAccessKey: secretAccessKey,
+      endPoint: new AWS.Endpoint(`http://localhost:${geoDdbPort}`) 
+    })
   }
 
   const _config = new _geoddb.GeoDataManagerConfiguration(_ddb, tableName);
@@ -31,8 +34,16 @@ function TableManager(tableName) {
   // Tweak the schema as desired
   _createTableInput.ProvisionedThroughput.ReadCapacityUnits = 20;
   _createTableInput.ProvisionedThroughput.WriteCapacityUnits = 20;
+ 
+  /*
+  GeoDataManagerConfiguration config = new GeoDataManagerConfiguration(ddb, "Schools")
+  .withHashKeyAttributeName("schoolHashKey")
+  .withRangeKeyAttributeName("schoolId")
+  .withGeohashAttributeName("schoolGeohash")
+  .withGeoJsonAttributeName("schoolGeoJson")
+  .withGeohashIndexName("school-geohash-index");
+  */
   
-  //_tableManager.proto
   _geoddb.GeoDataManager.prototype.createTable = (createTableInput) => {
     return _ddb.createTable(createTableInput).promise();
     

@@ -80,7 +80,9 @@ init_node_image:
 
 docker_local:
 	docker build . -t ${AppName}:local --build-arg NODE_IMAGE=${NODE_IMAGE} 
-	docker run  -e "NODE_PORT=8080" -p 8080:8080 ${AppName}:local
+	docker run  -e "NODE_PORT=8080" \
+		-e "NODE_ENV=development" \
+		-p 8080:8080 ${AppName}:local
 
 setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
 	echo "Infra created"
