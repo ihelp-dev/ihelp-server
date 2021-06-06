@@ -145,19 +145,23 @@ async function getHospitalsWithinRadius(req, res) {
             return response.results
         })
         .catch((err) => {
-            util.handleErrorResponse(res, err.GAPI_READ_ERROR)
             return []
         })
-
+  
     var dbResults = await client.QueryWithinRadius(params)
         .then((response) => {
             return response
         })
         .catch((err) => {
             console.error(err)
-            util.handleErrorResponse(res, err.GEO_DB_READ_ERROR)
+            
             return [];
         })
+    
+    if (dbResults.length == 0 ) {
+        util.handleErrorResponse(res, err.GEO_DB_READ_ERROR)
+        return
+    }
     var _results = mergeDbAndGApiResponse(dbResults, gResults)
     util.handleSuccess(res, _results)
 }
