@@ -20,7 +20,6 @@ function checkStatus(response) {
     } else {
         return response
     }
-
 }
 
 function getHospitalsFromLocationByRadius(params) {
