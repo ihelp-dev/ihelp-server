@@ -110,7 +110,7 @@ function mergeDbAndGApiResponse(dbDict, gDict) {
 }
 
 
-/////API //////
+//////////////////////////////////////// API ////////////////////////////
 
 /* 
     Api to get nearby hospitals within radius
@@ -147,21 +147,15 @@ async function getHospitalsWithinRadius(req, res) {
         .catch((err) => {
             return []
         })
-  
+
     var dbResults = await client.QueryWithinRadius(params)
         .then((response) => {
             return response
         })
         .catch((err) => {
             console.error(err)
-            
             return [];
         })
-    
-    if (dbResults.length == 0 ) {
-        util.handleErrorResponse(res, err.GEO_DB_READ_ERROR)
-        return
-    }
     var _results = mergeDbAndGApiResponse(dbResults, gResults)
     util.handleSuccess(res, _results)
 }
