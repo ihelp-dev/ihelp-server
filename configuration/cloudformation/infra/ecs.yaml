@@ -95,7 +95,7 @@ Resources:
     Properties:
       HealthCheckEnabled: true
       HealthCheckIntervalSeconds: 120
-      HealthCheckPath: /health
+      HealthCheckPath: /api/v1/health
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2

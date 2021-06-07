@@ -20,7 +20,7 @@ hospitalController.initGeoTable()
 
 
 //Required by ecs service
-app.get('/health', (req, res) => {
+app.get(utility.getApi("health"), (req, res) => {
   res.sendStatus(200)
 })
 
