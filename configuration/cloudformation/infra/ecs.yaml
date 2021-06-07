@@ -67,7 +67,7 @@ Resources:
     Properties:
       ClusterName: !Sub ${AppName}-${Environment}-cluster
 
-    LogGroup:
+  LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "${AppName}-${Environment}-backend"
