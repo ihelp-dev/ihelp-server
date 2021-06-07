@@ -80,6 +80,19 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
+      TargetType: ip
+      Name: !Sub ${AppName}-${Environment}-tr-grp
+      Port: !Ref ContainerPort
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue:
+          !Sub '${AppName}-${Environment}-VPC'
+
+  #Used with private loadbalancer listener
+  PrivateTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
       HealthCheckEnabled: true
       HealthCheckIntervalSeconds: 120
       HealthCheckPath: /health
@@ -87,7 +100,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
-      Name: !Sub ${AppName}-${Environment}-tr-grp
+      Name: !Sub ${AppName}-${Environment}-private-tr-grp
       Port: !Ref ContainerPort
       Protocol: HTTP
       UnhealthyThresholdCount: 2
@@ -166,6 +179,23 @@ Resources:
       ListenerArn:
         Fn::ImportValue:
           !Sub ${AppName}-${Environment}-PublicLoadBalancerListener
+      Priority: 1
+
+  # Create a rule on the load balancer for routing traffic to the target group
+  # This rule will make the backend services hosted in private subnets available using private load balancer
+  PrivateLoadBalancerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'PrivateTargetGroup'
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - "/*"
+      ListenerArn:
+        Fn::ImportValue:
+          !Sub ihelp-server-${Environment}-PrivateLoadBalancerListener
       Priority: 1
 
 Outputs:
