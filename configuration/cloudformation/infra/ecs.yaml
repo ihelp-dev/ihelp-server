@@ -17,20 +17,6 @@ Parameters:
     Description: "Port at which node server is running"
     Default: 8081
 
-  Path:
-    Type: String
-    Default: "*"
-    Description: A path on the public load balancer that this service
-                 should be connected to. Use * to send all load balancer
-                 traffic to this service.
-
-  Priority:
-    Type: Number
-    Default: 1
-    Description: The priority for the routing rule added to the load balancer.
-                 This only applies if your have multiple services which have been
-                 assigned to different paths on the load balancer
-
   # 256 (.25 vCPU) - Available memory values: 0.5GB, 1GB, 2GB
   # 512 (.5 vCPU) - Available memory values: 1GB, 2GB, 3GB, 4GB
   # 1024 (1 vCPU) - Available memory values: 2GB, 3GB, 4GB, 5GB, 6GB, 7GB, 8GB
@@ -179,8 +165,8 @@ Resources:
             - "/api/*"
       ListenerArn:
         Fn::ImportValue:
-          !Sub ${AppName}-${Environment}-PrivateLoadBalancerListener
-      Priority: !Ref 'Priority'
+          !Sub ${AppName}-${Environment}-PublicLoadBalancerListener
+      Priority: 1
 
 Outputs:
   ECSFargateService:
