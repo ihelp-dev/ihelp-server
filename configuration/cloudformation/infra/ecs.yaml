@@ -165,6 +165,9 @@ Resources:
           ContainerPort: !Ref ContainerPort
           TargetGroupArn: !Ref TargetGroup
 
+        - ContainerPort: !Ref ContainerPort
+          TargetGroupArn: !Ref PrivateTargetGroup
+
   # Create a rule on the load balancer for routing traffic to the target group
   LoadBalancerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
