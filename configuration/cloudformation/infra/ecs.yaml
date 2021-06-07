@@ -81,6 +81,10 @@ Resources:
     Properties:
       ClusterName: !Sub ${AppName}-${Environment}-cluster
 
+    LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "${AppName}-${Environment}-backend"
 
   # A target group. This is used for keeping track of all the tasks, and
   # what IP addresses / port numbers they have. You can query it yourself,
@@ -133,8 +137,8 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-region: !Ref AWS::Region
-              awslogs-group: !ImportValue LogGroup
-              awslogs-stream-prefix: ecs/backend
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs/
   
   #ECS fargate service: Addition or Deletion for tasks.
   ECSFargateService:
