@@ -13,6 +13,8 @@ optional: radius(default 50kms)
 # Test
 Create and run the docker test locally:
 make docker_local
+//if there is error with downloading node image try to run:
+make login_ecs
 
 curl -X POST http://localhost:8080/getHospitalsWithinRadius -H "Content-Type: application/json" -d "{\"lat\" : 27.1763098, \"long\": 77.9099723, \"radius\":100000 }"
 

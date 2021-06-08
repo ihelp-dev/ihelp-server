@@ -70,10 +70,9 @@ update_pipeline: validate_templates
 			ParameterKey=GitHubToken,ParameterValue=$(GitHubToken) \
 		--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
-init_node_image:
+init_node_image: login_ecs
 	docker pull node
-	aws --region $(REGION) ecr get-login-password  | docker login --username AWS --password-stdin $(REPO_URI)
-	$(aws ecr get-login --no-include-email $(REGION))
+	
 	docker tag node $(NODE_IMAGE):latest
 	docker push "$(NODE_IMAGE):latest"
 
@@ -83,6 +82,10 @@ docker_local:
 	docker run  -e "NODE_PORT=8080" \
 		-e "NODE_ENV=development" \
 		-p 8080:8080 ${AppName}:local
+
+login_ecs:
+	aws --region $(REGION) ecr get-login-password  | docker login --username AWS --password-stdin $(REPO_URI)
+	$(aws ecr get-login --no-include-email $(REGION))
 
 setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
 	echo "Infra created"
