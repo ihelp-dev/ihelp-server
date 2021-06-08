@@ -142,11 +142,17 @@ async function getHospitalsWithinRadius(req, res) {
     //Get all list from google client
     var gResults = await gapi.getHospitalsFromLocationByRadius(params)
         .then((response) => {
+            console.log(response)
             return response.results
         })
         .catch((err) => {
+            console.log(err)
             return []
         })
+    if (req.body.hasOwnProperty(["shortcut"]) && req.body["shortcut"]) {
+        util.handleSuccess(res, gResults)
+        return
+    }
 
     var dbResults = await client.QueryWithinRadius(params)
         .then((response) => {
