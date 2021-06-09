@@ -72,7 +72,6 @@ update_pipeline: validate_templates
 
 init_node_image: login_ecs
 	docker pull node
-	
 	docker tag node $(NODE_IMAGE):latest
 	docker push "$(NODE_IMAGE):latest"
 
@@ -81,10 +80,10 @@ docker_local:
 	docker build . -t ${AppName}:local --build-arg NODE_IMAGE=${NODE_IMAGE} 
 	docker run  -e "NODE_PORT=8080" \
 		-e "NODE_ENV=development" \
-		-p 8080:8080 ${AppName}:local
+		-p 8085:8080 ${AppName}:local
 
 login_ecs:
-	aws --region $(REGION) ecr get-login-password  | docker login --username AWS --password-stdin $(REPO_URI)
+	$(aws) ecr get-login-password  | docker login --username AWS --password-stdin $(REPO_URI)
 	$(aws ecr get-login --no-include-email $(REGION))
 
 setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image

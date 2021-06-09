@@ -1,3 +1,4 @@
+///Library functions for geo database
 const { SharedIniFileCredentials } = require('aws-sdk')
 const AWS = require('aws-sdk')
 var cryptoJs = require('crypto-js')

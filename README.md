@@ -11,8 +11,19 @@ optional: radius(default 50kms)
 
 
 # Test
-Create and run the docker test locally:
+
+
+# Create and run the docker test locally
+You must have ~/.aws/credentials file setup with profile name "covid":
+Copy/Paste below to ~/.aws/credentials
+
+[covid]
+region=us-west-2
+aws_access_key_id=234343343
+aws_secret_access_key=23434233424
+
 make docker_local
+
 //if there is error with downloading node image try to run:
 make login_ecs
 

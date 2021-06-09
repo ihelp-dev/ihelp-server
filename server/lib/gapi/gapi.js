@@ -1,6 +1,10 @@
+///Library function for google api 
 const axios = require("axios");
 const PLACES_API = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?"
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY
+const DISTANCE_API= "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&departure_time=now"
+
+
 const err = require("../../util/error")
 
 function checkStatus(response) {
@@ -22,6 +26,16 @@ function checkStatus(response) {
     }
 }
 
+function getDistanceBetweenLatLong(origin, destinations) {
+    const api = `${DISTANCE_API}&key=${GOOGLE_API_KEY}&origins=${origin}&destinations=${destinations}`
+    return new Promise((resolve, reject) => {
+      axios.get(api)
+      .then(response => checkStatus(response))
+      .then(response => resolve(response))
+      .catch(err => reject(err))
+    });
+}
+
 function getHospitalsFromLocationByRadius(params) {
     const lat = params.lat
     const long = params.long
@@ -36,6 +50,7 @@ function getHospitalsFromLocationByRadius(params) {
 }
 
 module.exports = {
-    getHospitalsFromLocationByRadius
+    getHospitalsFromLocationByRadius,
+    getDistanceBetweenLatLong
 }
 
