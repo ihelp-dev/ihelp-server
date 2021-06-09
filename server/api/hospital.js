@@ -161,7 +161,6 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
             console.error("mergeDbAndGApiResponse Error: " + err.toString())
             return dbDict
         })
-    //console.log(JSON.stringify(dbDict))
     updateDbFromGApi(notInDb)
     console.log('difference ', notInDb.length)
     return results
@@ -198,9 +197,8 @@ async function getHospitalsWithinRadius(req, res) {
     params["lat"] = req.body.lat
     params["long"] = req.body.long
 
-    //Get all list from google client
-    //Dont want to call google api unnecessarily
-    if (NODE_ENV == 'production') {
+    //Get all list of hospitals from google client
+    if (NODE_ENV == 'production') {//Dont want to call google api unnecessarily
         var gResults = await gapi.getHospitalsFromLocationByRadius(params)
             .then((response) => {
                 return response.results
@@ -211,6 +209,12 @@ async function getHospitalsWithinRadius(req, res) {
             })
     }
 
+    if (req.body.hasOwnProperty(["shortcut"]) && req.body["shortcut"]) {
+        util.handleSuccess(res, gResults)
+        return
+    }
+
+    //Get all list of hospitals from database
     var dbResults = await client.QueryWithinRadius(params)
         .then((response) => {
             return response
@@ -227,6 +231,7 @@ async function getHospitalsWithinRadius(req, res) {
         console.error("getHospitalsWithinRadius Error: " + err.toString())
         return []
     })
+
     util.handleSuccess(res, _results)
 }
 
