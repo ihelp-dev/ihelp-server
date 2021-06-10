@@ -85,7 +85,7 @@ async function calculateDistanceBetweenGeoPoints(origin, destinations, dbDict) {
         return response
     })
     .catch(err => {
-        console.error("getDistanceBetweenLatLong Error" + err.toString())
+        console.log("getDistanceBetweenLatLong Error" + err.toString())
         return results
     })
     if ( distance.length == 0 ) {
@@ -158,7 +158,7 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
     })
     .catch(
         err => {
-            console.error("mergeDbAndGApiResponse " + JSON.stringify(gDict[j])  + err.toString())
+            console.log("mergeDbAndGApiResponse " + JSON.stringify(gDict[j])  + err.toString())
             return dbDict
         })
     updateDbFromGApi(notInDb)
@@ -204,7 +204,7 @@ async function getHospitalsWithinRadius(req, res) {
                 return response.results
             })
             .catch((err) => {
-                console.error("getHospitalsWithinRadius Error: " + err.toString())
+                console.log("getHospitalsWithinRadius Error: " + err.toString())
                 return []
             })
     }
@@ -220,7 +220,7 @@ async function getHospitalsWithinRadius(req, res) {
             return response
         })
         .catch((err) => {
-            console.error("getHospitalsWithinRadius Error: " + err.toString())
+            console.log("getHospitalsWithinRadius Error: " + err.toString())
             return [];
         })
     var _results = await mergeDbAndGApiResponse(dbResults, gResults, params)
@@ -228,7 +228,7 @@ async function getHospitalsWithinRadius(req, res) {
         return response
     })
     .catch( err => {
-        console.error("getHospitalsWithinRadius Error: " + err.toString())
+        console.log("getHospitalsWithinRadius Error: " + err.toString())
         return []
     })
 

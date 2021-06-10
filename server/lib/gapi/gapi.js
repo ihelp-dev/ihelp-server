@@ -34,7 +34,7 @@ function getDistanceBetweenLatLong(origin, destinations) {
             .then(response => checkStatus(response))
             .then(response => resolve(response))
             .catch(err => {
-                console.error("Gapi getDistanceBetweenLatLong : ", err.toString())
+                console.log("Gapi getDistanceBetweenLatLong Error : ", err.toString())
                 reject(err)
             })
     });
@@ -50,7 +50,7 @@ function getHospitalsFromLocationByRadius(params) {
             .then(response => checkStatus(response))
             .then(response => resolve(response.data))
             .catch(err => {
-                console.error("getHospitalsFromLocationByRadius : ", err.toString())
+                console.log("getHospitalsFromLocationByRadius Error: ", err.toString())
                 reject(err)
             })
     });
