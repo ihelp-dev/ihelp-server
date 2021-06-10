@@ -145,8 +145,8 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
                 notInDb.push(gDict[j])
                 dbDict[key] = convertToGeoDbDataStruct( gDict, lat, long)
             }
-        } catch (e) {
-            _errStr = "mergeDbAndGApiResponse Warning: " + JSON.stringify(gDict[j]) + " : " + e.toString() 
+        } catch (err) {
+            _errStr = "mergeDbAndGApiResponse Warning: " + JSON.stringify(gDict[j]) + " : " + err.toString() 
             console.warn(_errStr)
         }
     }
@@ -158,7 +158,7 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
     })
     .catch(
         err => {
-            console.error("mergeDbAndGApiResponse Error: " + err.toString())
+            console.error("mergeDbAndGApiResponse " + JSON.stringify(gDict[j])  + err.toString())
             return dbDict
         })
     updateDbFromGApi(notInDb)
