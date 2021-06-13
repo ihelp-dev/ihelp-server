@@ -78,7 +78,7 @@ function convertToGeoDbDataStruct(data, lat, long) {
 //gapiResp = [dictOfgapiR1, dictOfgapiR2 ]
 //Destinations: String ie lat1,long1|lat2,long2 eg 22.22,33.33|1.1,2.2|45.4,66.6
 //dbDict: List[Map1, Map2]
-function embedDistanceFromGapiIntoResponse(destinations, dbDict, gapiResp) {
+function embedGapiResponseIntoDbDict(destinations, dbDict, gapiResp) {
     if (!gapiResp.hasOwnProperty("data")
         || !gapiResp["data"].hasOwnProperty("rows")
         || gapiResp["data"]["rows"].length == 0
@@ -107,7 +107,7 @@ function embedDistanceFromGapiIntoResponse(destinations, dbDict, gapiResp) {
             dbDict[i]["duration_in_traffic"] = elements[idx]["duration_in_traffic"]["text"]
        } catch(err) {
             errStr = "getDistanceBetweenLatLong Warning: " + JSON.stringify(dbDict[i]) + " : " + err.toString()
-            console.log(errStr)
+            console.warn(errStr)
        }
     }
 }
@@ -172,12 +172,12 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
     destinationsStrList.map(dest => {
         destinationPromises.push(gapi.getDistanceBetweenLatLong(origin, dest))
     })
-    updateDbFromGApi(notInDb)
     let promiseResults = await Promise.allSettled(destinationPromises)
     //embed durations in dbDict
     for ( var i = 0; i < promiseResults.length; i++) {
-        embedDistanceFromGapiIntoResponse(destinationsStrList[i], dbDict, promiseResults[i].value)
+        embedDistanceFromGapiIntoDbDict(destinationsStrList[i], dbDict, promiseResults[i].value)
     }
+    updateDbFromGApi(notInDb)
     //TODO: Push difference metrics to cloudwatch metrics
     console.log('difference ', notInDb.length)
     return dbDict
@@ -185,7 +185,6 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
 
 
 //////////////////////////////////////// API ////////////////////////////
-
 /* 
     Api to get nearby hospitals within radius
       {
