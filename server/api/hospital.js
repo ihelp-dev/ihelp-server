@@ -175,7 +175,7 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
     let promiseResults = await Promise.allSettled(destinationPromises)
     //embed durations in dbDict
     for ( var i = 0; i < promiseResults.length; i++) {
-        embedDistanceFromGapiIntoDbDict(destinationsStrList[i], dbDict, promiseResults[i].value)
+        embedGapiResponseIntoDbDict(destinationsStrList[i], dbDict, promiseResults[i].value)
     }
     updateDbFromGApi(notInDb)
     //TODO: Push difference metrics to cloudwatch metrics
