@@ -75,41 +75,41 @@ function convertToGeoDbDataStruct(data, lat, long) {
     return params
 }
 
-//Origin: String ie lat,long eg 2.2,3.3
+//gapiResp = [dictOfgapiR1, dictOfgapiR2 ]
 //Destinations: String ie lat1,long1|lat2,long2 eg 22.22,33.33|1.1,2.2|45.4,66.6
-//dbDict: List[{String: Map}, {String1:Map1}]
-async function calculateDistanceBetweenGeoPoints(origin, destinations, dbDict) {
-    var results = dbDict
-    var distance = await gapi.getDistanceBetweenLatLong(origin, destinations)
-    .then(response => {
-        return response
-    })
-    .catch(err => {
-        console.log("getDistanceBetweenLatLong Error" + err.toString())
-        return results
-    })
-    if ( distance.length == 0 ) {
-        return results
+//dbDict: List[Map1, Map2]
+function embedDistanceFromGapiIntoResponse(destinations, dbDict, gapiResp) {
+    if (!gapiResp.hasOwnProperty("data")
+        || !gapiResp["data"].hasOwnProperty("rows")
+        || gapiResp["data"]["rows"].length == 0
+        || !gapiResp["data"]["rows"][0].hasOwnProperty("elements"))
+    {
+        console.warn("getDistanceBetweenLatLong Warning: Distances returned from gapi doesn't have valid attributes")
+        return
     }
-    if (!distance.hasOwnProperty("data")
-        || !distance["data"].hasOwnProperty("rows")
-        || distance["data"]["rows"].length == 0
-        || !distance["data"]["rows"][0].hasOwnProperty("elements")){
-        return results
-    }
-    var _elements = distance["data"]["rows"][0]["elements"]
+    var elements = gapiResp["data"]["rows"][0]["elements"]
 
     //Destinations = 77.33,66.1|55.5,44.4|11.2,33.1
     _arr = destinations.split("|")
-    if ( results.length == 0 ) {
-        return results
+
+    for ( var i in dbDict) {
+        try {
+            location = JSON.parse(dbDict[i]["geoJson"])
+            lat = location["coordinates"][1]
+            long = location["coordinates"][0]
+            key = `${lat},${long}`
+            idx = _arr.indexOf(key)
+            if ( idx == -1 ) {
+                continue;
+            }
+            dbDict[i]["distance"] = elements[idx]["distance"]["text"]
+            dbDict[i]["duration"] = elements[idx]["duration"]["text"]
+            dbDict[i]["duration_in_traffic"] = elements[idx]["duration_in_traffic"]["text"]
+       } catch(err) {
+            errStr = "getDistanceBetweenLatLong Warning: " + JSON.stringify(dbDict[i]) + " : " + err.toString()
+            console.log(errStr)
+       }
     }
-    for ( var i in _arr) {
-        results[i]["distance"] = _elements[i]["distance"]["text"]
-        results[i]["duration"] = _elements[i]["duration"]["text"]
-        results[i]["duration_in_traffic"] = _elements[i]["duration_in_traffic"]["text"] 
-    }
-    return results
 }
 
 
@@ -119,17 +119,17 @@ async function calculateDistanceBetweenGeoPoints(origin, destinations, dbDict) {
 async function mergeDbAndGApiResponse(dbDict, gDict, params) {
     var _dict = {}
     var notInDb = []
-    destinations = ""
+    destinations = []
     for (let i in dbDict) {
         try {
             location = JSON.parse(dbDict[i]["geoJson"])
             lat = location["coordinates"][1]
             long = location["coordinates"][0]
             var key = `${lat},${long}`
-            destinations += key +  "|"
+            destinations.push(key)
             _dict[key] = dbDict[i]
-        } catch (e) {
-            _errStr = "mergeDbAndGApiResponse Warning: " + JSON.stringify(dbDict[i]) + " : " + e.toString()
+        } catch (err) {
+            _errStr = "mergeDbAndGApiResponse Warning: " + JSON.stringify(dbDict[i]) + " : " + err.toString()
             console.warn(_errStr)
         }
     }
@@ -141,7 +141,7 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
             long = location["lng"]
             key = `${lat},${long}`
             if (!_dict.hasOwnProperty(key)) {
-                destinations += key + "|"
+                destinations.push(key)
                 notInDb.push(gDict[j])
                 dbDict[key] = convertToGeoDbDataStruct( gDict, lat, long)
             }
@@ -150,21 +150,37 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
             console.warn(_errStr)
         }
     }
-    //destinations=> 77.6,22.5|24.5,65.6...
-    destinations = destinations.slice(0, -1)
-    var results = await calculateDistanceBetweenGeoPoints(`${params["lat"]},${params["long"]}`, destinations, dbDict)
-    .then(response => {
-        return response
+    //Call google api and get the distances from origin to destinations
+    //Gapi can only process max 25 destinations at a time
+    let destinationsStrList = []
+    let start = 0
+    for ( let end = 1; end < destinations.length; end++ ) {
+        if ( end % 24 == 0) {
+            let items = destinations.slice(start,end)
+            destinationsStrList.push(items.join("|"))
+            start = end
+        }
+    }
+    //destinationStr=> ["77.6,22.5|24.5,65.6...", "88.899.7|11.1,22.2..." ...]
+    //process remaining destination items
+    let remainingItems = destinations.slice(start, destinations.length)
+    if (remainingItems.length != 0 ) {
+        destinationsStrList.push(remainingItems.join("|"))
+    }
+    let origin = `${params["lat"]},${params["long"]}`
+    const destinationPromises = []
+    destinationsStrList.map(dest => {
+        destinationPromises.push(gapi.getDistanceBetweenLatLong(origin, dest))
     })
-    .catch(
-        err => {
-            console.log("mergeDbAndGApiResponse " + JSON.stringify(gDict[j])  + err.toString())
-            return dbDict
-        })
     updateDbFromGApi(notInDb)
+    let promiseResults = await Promise.allSettled(destinationPromises)
+    //embed durations in dbDict
+    for ( var i = 0; i < promiseResults.length; i++) {
+        embedDistanceFromGapiIntoResponse(destinationsStrList[i], dbDict, promiseResults[i].value)
+    }
+    //TODO: Push difference metrics to cloudwatch metrics
     console.log('difference ', notInDb.length)
-    return results
-    //Push difference metrics to cloudwatch metrics
+    return dbDict
 }
 
 
@@ -204,7 +220,7 @@ async function getHospitalsWithinRadius(req, res) {
                 return response.results
             })
             .catch((err) => {
-                console.log("getHospitalsWithinRadius Error: " + err.toString())
+                console.error("getHospitalsWithinRadius Error: " + err.toString())
                 return []
             })
     }
@@ -220,7 +236,7 @@ async function getHospitalsWithinRadius(req, res) {
             return response
         })
         .catch((err) => {
-            console.log("getHospitalsWithinRadius Error: " + err.toString())
+            console.error("getHospitalsWithinRadius Error: " + err.toString())
             return [];
         })
     var _results = await mergeDbAndGApiResponse(dbResults, gResults, params)
@@ -228,7 +244,7 @@ async function getHospitalsWithinRadius(req, res) {
         return response
     })
     .catch( err => {
-        console.log("getHospitalsWithinRadius Error: " + err.toString())
+        console.error("getHospitalsWithinRadius Error: " + err.toString())
         return []
     })
 
