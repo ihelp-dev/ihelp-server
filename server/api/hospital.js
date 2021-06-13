@@ -15,7 +15,7 @@ const DB_NAME = "INDIA_HOSPITAL_LIST"
 let client = null;
 
 async function initGeoTable() {
-    if (NODE_ENV == 'production' || NODE_ENV == 'staging') {
+    if (NODE_ENV == 'production') {
         var config = tableManager(DB_NAME)
         client = new geoClient(config)
     } else {
@@ -153,6 +153,7 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
     //Call google api and get the distances from origin to destinations
     //Gapi can only process max 25 destinations at a time
     let destinationsStrList = []
+    //destinationStr=> ["77.6,22.5|24.5,65.6...", "88.899.7|11.1,22.2..." ...]
     let start = 0
     for ( let end = 1; end < destinations.length; end++ ) {
         if ( end % 24 == 0) {
@@ -161,7 +162,6 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
             start = end
         }
     }
-    //destinationStr=> ["77.6,22.5|24.5,65.6...", "88.899.7|11.1,22.2..." ...]
     //process remaining destination items
     let remainingItems = destinations.slice(start, destinations.length)
     if (remainingItems.length != 0 ) {
