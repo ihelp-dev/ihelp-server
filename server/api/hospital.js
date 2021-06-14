@@ -112,6 +112,22 @@ function embedGapiResponseIntoDbDict(destinations, dbDict, gapiResp) {
     }
 }
 
+function sortListOfDictByDistance(listOfDict) {
+    listOfDict.sort(function(x,y) {
+        if (!x.hasOwnProperty("distance") && !y.hasOwnProperty("distance")) {
+            return true
+        }
+        if (!x.hasOwnProperty("distance")) {
+            return false
+        }
+        if (!y.hasOwnProperty("distance")) {
+            return true
+        }
+        xDistance = parseInt((x["distance"].split(" "))[0], 10)
+        yDistance = parseInt((y["distance"].split(" "))[0], 10)
+        return xDistance - yDistance
+    })
+}
 
 //dbDict: List[<Map>]
 //gDict: List[<Map>]
@@ -133,7 +149,6 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
             console.warn(_errStr)
         }
     }
-   
     for (let j in gDict) {
         try {
             location = gDict[j]["geometry"]["location"]
@@ -177,6 +192,7 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
     for ( var i = 0; i < promiseResults.length; i++) {
         embedGapiResponseIntoDbDict(destinationsStrList[i], dbDict, promiseResults[i].value)
     }
+    sortListOfDictByDistance(dbDict)
     updateDbFromGApi(notInDb)
     //TODO: Push difference metrics to cloudwatch metrics
     console.log('difference ', notInDb.length)
