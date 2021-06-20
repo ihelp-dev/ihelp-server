@@ -376,6 +376,8 @@ Resources:
                     "Environment": "${Environment}",
                     "AppName" : "${AppName}"
                   }
+              InputArtifacts:
+               - Name: BuildOutputArtifact 
               RunOrder: 1
  
 

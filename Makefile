@@ -90,7 +90,6 @@ login_ecs:
 setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
 	echo "Infra created"
 
-
 lambda:
 	mkdir -p output
 	aws cloudformation package \
