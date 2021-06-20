@@ -50,8 +50,7 @@ phases:
       - docker push ${IMAGE_URI}:latest
       - printf '[{"name":"%s","imageUri":"%s"}]' ${CONTAINER_NAME} ${IMAGE_URI}:latest > imagedefinitions.json
       - cat imagedefinitions.json
-      - mv imagedefinitions.json ouput/
-      - mv 
+      - mv imagedefinitions.json output/
 
 # Include only the files required for your application to run.
 artifacts:
