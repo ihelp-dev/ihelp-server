@@ -93,7 +93,7 @@ setup_prod_infra: validate_templates create_global_resources create_pipeline_pro
 
 lambda:
 	mkdir -p output
-	$(aws) cloudformation package \
+	aws cloudformation package \
 		--template-file ./lambda/cfn.yaml \
 		--s3-bucket ${AppName}-${Environment}-lambda-zip \
 		--s3-prefix ${Environment} \

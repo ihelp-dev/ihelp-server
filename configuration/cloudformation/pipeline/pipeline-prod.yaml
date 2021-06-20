@@ -132,7 +132,7 @@ Resources:
           - Name: APP_NAME
             Type: PLAINTEXT
             Value: !Sub ${AppName}
-          - Name: ENV
+          - Name: Environment
             Type: PLAINTEXT
             Value: !Sub ${Environment}
         Image: aws/codebuild/standard:3.0
