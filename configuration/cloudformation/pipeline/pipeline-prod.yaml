@@ -370,7 +370,7 @@ Resources:
                 RoleArn: !GetAtt CloudFormationRole.Arn
                 StackName: !Sub ${AWS::StackName} 
                 Capabilities: CAPABILITY_IAM
-                TemplatePath: BuildOutputArtifact::output/lambda-out.yaml
+                TemplatePath: BuildOutputArtifact::lambda-out.yaml
                 ParameterOverrides: !Sub |
                   {
                     "Environment": "${Environment}",
