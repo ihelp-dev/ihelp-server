@@ -54,7 +54,7 @@ Resources:
       Environment:
         Variables:
             NODE_ENV: !Sub ${Environment}
-      Code: src/helloworld/.
+      CodeUri: src/helloworld/.
       Handler: hello.HelloWorldHandler
 
 
