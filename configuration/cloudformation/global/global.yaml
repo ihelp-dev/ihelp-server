@@ -193,7 +193,6 @@ Resources:
         - arn:aws:iam::aws:policy/AWSCloudFormationReadOnlyAccess
         - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
         - arn:aws:iam::aws:policy/SecretsManagerReadWrite
-        - arn:aws:iam::aws:policy/AWSElasticBeanstalkFullAccess
         - arn:aws:iam::aws:policy/AmazonKinesisFullAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
