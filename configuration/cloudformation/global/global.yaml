@@ -206,7 +206,7 @@ Resources:
   LambdaZipBucket:
     Type: AWS::S3::Bucket
     Properties:
-      RepositoryName: !Sub ${AppName}-${Environment}-lambda-zip
+      BucketName: !Sub ${AppName}-${Environment}-lambda-zip
       VersioningConfiguration:
         Status: Enabled
 
