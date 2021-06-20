@@ -35,7 +35,7 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
             - arn:aws:iam::aws:policy/service role/AWSLambdaBasicExecutionRole
-
+            - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
 
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup
@@ -43,7 +43,6 @@ Resources:
       LogGroupName: !Sub "/${AppName}-${Environment}-lambda"
 
   HelloWorldFunction:
-    DependsOn: LambdaZipBucket
     Type: AWS::Lambda::Function
     Properties:
       Description: Hello world api

@@ -204,7 +204,6 @@ Resources:
       LogGroupName: !Sub "/${AppName}-${Environment}"
 
   LambdaZipBucket:
-    DependsOn: LambdaRole
     Type: AWS::S3::Bucket
     Properties:
       RepositoryName: !Sub ${AppName}-${Environment}-lambda-zip
