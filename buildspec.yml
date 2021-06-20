@@ -34,6 +34,8 @@ phases:
       - echo Building images...
       - echo "Current working directory"
       - pwd
+      - echo "Create output directory for artifacts"
+      - mkdir -p output
       - echo "Packaging lambdas .. "
       - make -B lambda
       - docker build . -t ${IMAGE_URI}:latest --build-arg NODE_IMAGE=${NODE_URI}:latest
@@ -48,8 +50,14 @@ phases:
       - docker push ${IMAGE_URI}:latest
       - printf '[{"name":"%s","imageUri":"%s"}]' ${CONTAINER_NAME} ${IMAGE_URI}:latest > imagedefinitions.json
       - cat imagedefinitions.json
+      - mv imagedefinitions.json ouput/
+      - mv 
 
 # Include only the files required for your application to run.
 artifacts:
+  base-directory: output
+  discard-paths: yes
+  type: zip
+  name: IhelpBuildOutputArtifacts
   files:
-    - imagedefinitions.json
+    - '**/*'
