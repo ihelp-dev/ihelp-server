@@ -93,10 +93,12 @@ setup_prod_infra: validate_templates create_global_resources create_pipeline_pro
 lambda:
 	mkdir -p output
 	./scripts/build_lambda.sh
+	@echo "from makefile1 .. $(shell pwd)"
 	aws cloudformation package \
 		--template-file ./lambda/cfn.yaml \
 		--s3-bucket ${AppName}-${Environment}-lambda-zip \
 		--s3-prefix ${Environment} \
 		--output-template-file output/lambda-out.yaml
+	@echo "from makefile2 .. $(shell pwd)"
 
 delete_infra: delete_pipeline delete_global_resources 

@@ -33,11 +33,13 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Building images...
       - echo "Current working directory"
       - pwd
       - echo "Packaging lambdas .. "
       - make -B lambda
+      - echo "after lambda"
+      - pwd
+      - echo Building images...
       - docker build . -t ${IMAGE_URI}:latest --build-arg NODE_IMAGE=${NODE_URI}:latest
       - echo Tag the docker image
       - docker tag ${IMAGE_URI}:latest ${IMAGE_URI}:${IMAGE_TAG}
