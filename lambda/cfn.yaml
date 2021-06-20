@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Resources shared across service stacks
+
+Metadata:
+  Version:
+    Description: v1.0.0
+
+Parameters:
+  Environment:
+    Type: String
+    Description: "application environment"
+    Default: development
+  AppName:
+    Type: String
+    Description: "Name of the application"
+
+Conditions:
+  isProduction: !Equals [!Ref Environment, 'production']
+
+Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AppName}-${Environment}-${AWS::Region}-lambda-role
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - 
+            Effect: Allow
+            Principal:
+              Service: 
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+            - arn:aws:iam::aws:policy/service role/AWSLambdaBasicExecutionRole
+
+
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/${AppName}-${Environment}-lambda"
+
+  HelloWorldFunction:
+    DependsOn: LambdaZipBucket
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Hello world api
+      FunctionName: !Sub ${AppName}-${Environment}-helloworldapi
+      Runtime: nodejs14.x
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 500
+      Environment:
+        NODE_ENV: !Sub ${Environment}
+      Code: src/HelloWorld/
+      Handler: hello.HelloWorldHandler
+
+

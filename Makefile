@@ -1,4 +1,4 @@
-.PHONY: build
+.PHONY: build lambda
 SHELL := /bin/bash
 export PATH := $(CURDIR)/_tools/bin:$(PATH)
 EPOCH=$(shell date +"%s")
@@ -56,6 +56,7 @@ validate_templates:
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/global/global.yaml 1>/dev/null
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/infra/ecs.yaml 1>/dev/null
 	$(aws) cloudformation validate-template --template-body file://./configuration/cloudformation/infra/vpc.yaml 1>/dev/null
+	$(aws) cloudformation validate-template --template-body file://./lambda/cfn.yaml 1>/dev/null
 	
 update_pipeline: validate_templates
 	$(aws) cloudformation update-stack \
@@ -88,5 +89,14 @@ login_ecs:
 
 setup_prod_infra: validate_templates create_global_resources create_pipeline_prod init_node_image
 	echo "Infra created"
+
+
+lambda:
+	mkdir -p output
+	$(aws) cloudformation package \
+		--template-file ./lambda/cfn.yaml \
+		--s3-bucket ${AppName}-${Environment}-lambda-zip \
+		--s3-prefix ${Environment} \
+		--output-template-file output/lambda-out.yaml
 
 delete_infra: delete_pipeline delete_global_resources 

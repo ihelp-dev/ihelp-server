@@ -203,6 +203,16 @@ Resources:
     Properties:
       LogGroupName: !Sub "/${AppName}-${Environment}"
 
+  LambdaZipBucket:
+    DependsOn: LambdaRole
+    Type: AWS::S3::Bucket
+    Properties:
+      RepositoryName: !Sub ${AppName}-${Environment}-lambda-zip
+      VersioningConfiguration:
+        Status: Enabled
+
+
+
 Outputs:
 
   AutoscalingRole:
@@ -245,4 +255,4 @@ Outputs:
     Description: Cloudwatch log group 
     Value: !Ref LogGroup
     Export:
-      Name: LogGroup 
+      Name: LogGroup
