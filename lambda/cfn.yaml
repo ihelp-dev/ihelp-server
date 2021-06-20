@@ -44,7 +44,7 @@ Resources:
       LogGroupName: !Sub "/${AppName}-${Environment}-lambda"
 
   HelloWorldFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Description: HelloWorld
       FunctionName: !Sub ${AppName}-${Environment}-helloworld
@@ -54,7 +54,7 @@ Resources:
       Environment:
         Variables:
             NODE_ENV: !Sub ${Environment}
-      Code: src/helloworld/.
+      CodeUri: src/helloworld/.
       Handler: hello.HelloWorldHandler
 
 
