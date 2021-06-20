@@ -368,7 +368,7 @@ Resources:
               Configuration:
                 ActionMode: CREATE_UPDATE
                 RoleArn: !GetAtt CloudFormationRole.Arn
-                StackName: !Sub ${AWS::StackName} 
+                StackName: !Sub ${AWS::StackName}-lambda 
                 Capabilities: CAPABILITY_IAM
                 TemplatePath: BuildOutputArtifact::lambda-out.yaml
                 ParameterOverrides: !Sub |
