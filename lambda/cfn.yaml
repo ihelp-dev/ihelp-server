@@ -20,24 +20,6 @@ Conditions:
   isProduction: !Equals [!Ref Environment, 'production']
 
 Resources:
-  LambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${AppName}-${Environment}-${AWS::Region}-lambda-role
-      Path: "/"
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - 
-            Effect: Allow
-            Principal:
-              Service: 
-                - lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-            - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-            - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
-
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -49,12 +31,12 @@ Resources:
       Description: HelloWorld
       FunctionName: !Sub ${AppName}-${Environment}-helloworld
       Runtime: nodejs14.x
-      Role: !GetAtt LambdaRole.Arn
+      Role: !ImportValue LambdaExecutionRole
       Timeout: 500
       Environment:
         Variables:
             NODE_ENV: !Sub ${Environment}
-      CodeUri: src/helloworld/.
+      Code: ./src/helloworld/.
       Handler: hello.HelloWorldHandler
 
 
