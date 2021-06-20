@@ -33,3 +33,11 @@ or run against production server:
 curl -i -X POST -H "Content-Type: application/json" -d "{\"lat\" : 27.1763098, \"long\": 77.9099723, \"radius\":100000 }" http://ihelp-publi-1asxps8obc7on-1721964325.us-west-2.elb.amazonaws.com/api/v1/getHospitalsWithinRadius
 
 
+# Lambdas
+	Create a new folder "helloworld"
+	If need to init package, use "npm init --yes" to initialize module(If doesn't want to use default module use: npm --init and follow prompts)
+	Make sure to have dependencies listed as part of package.json(use npm install package-name --save-prod)
+	Only use libraries which are required (there is a hard size limit on lambda function code)
+	Add lambda cloudformation code to: lambda/cfn.yaml, follow HelloWorld example
+	Specify Code property which the folder name and handler, eg. Code: src/helloworld/. and Handler: hello.HelloWorldHanlder
+	
