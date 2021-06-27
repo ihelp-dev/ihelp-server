@@ -1,10 +1,12 @@
-import { DynamoDB } from "@aws-sdk/client-dynamodb"
+import { DynamoDB, ExportSummary } from "@aws-sdk/client-dynamodb"
 import axios from "axios"
 import { generateGeohash, generateHashKey, generateObjectId, generateGeoJson } from "./utils.js"
 
 const GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY"
 
-(async () => {
+exports.handler = handler
+
+const handler = async () => {
 	const client = new DynamoDB({ region: "us-west-2" });
 	try {
 	const results = await client.listTables({});
@@ -48,5 +50,4 @@ const GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY"
 		}
 	})
 
-})();
-
+}

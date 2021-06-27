@@ -39,4 +39,18 @@ Resources:
       Code: ./src/helloworld/.
       Handler: hello.HelloWorldHandler
 
+  UpdateDynamoDBFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Sync hospital list
+      FunctionName: !Sub ${AppName}-${Environment}-updateDynamoDB
+      Runtime: nodejs14.x
+      Role: !ImportValue LambdaExecutionRole
+      Timeout: 500
+      Environment:
+        Variables:
+            NODE_ENV: !Sub ${Environment}
+      Code: ./src/updateDynamoDB/.
+      Handler: index.handler
+
 
