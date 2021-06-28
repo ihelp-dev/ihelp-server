@@ -27,9 +27,6 @@ phases:
       - mkdir -p output
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_REGION)
-      - echo "Setting up git to use https"
-      - git config --global url."https://github.com/".insteadOf git@github.com
-      - git config --global url."https://".insteadOf git://
       - echo Installing Mocha...
       - npm install -g mocha
       #- npm run test
