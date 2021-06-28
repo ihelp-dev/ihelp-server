@@ -2,8 +2,8 @@ var express = require('express')
 var cors = require('cors')
 var morgan = require('morgan')
 const bodyParser = require('body-parser');
+const ilib = require("ihelp-lib")
 
-var utility = require("./util/utility")
 var helloController = require('./api/hello')
 var hospitalController = require("./api/hospital")
 
@@ -18,20 +18,19 @@ app.use(bodyParser.raw());
 
 hospitalController.initGeoTable()
 
-
 //Required by ecs service
-app.get(utility.getApi("health"), (req, res) => {
+app.get(ilib.util.getApi("health"), (req, res) => {
   res.sendStatus(200)
 })
 
 
 // /api/v1
-app.get(utility.getApi(""), helloController.helloWorld);
+app.get(ilib.util.getApi(""), helloController.helloWorld);
 
 // /api/v1/hello
-app.get(utility.getApi("hello"), helloController.hello);
+app.get(ilib.util.getApi("hello"), helloController.hello);
 
-app.post(utility.getApi("getHospitalsWithinRadius"), hospitalController.getHospitalsWithinRadius);
+app.post(ilib.util.getApi("getHospitalsWithinRadius"), hospitalController.getHospitalsWithinRadius);
 
 
 /*

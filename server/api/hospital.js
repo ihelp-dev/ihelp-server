@@ -1,11 +1,6 @@
-var geoClient = require("../lib/db/geoddb")
-var tableManager = require("../lib/db/config")
-const gapi = require("../lib/gapi/gapi")
-const err = require("../util/error")
-var util = require("../util/utility")
-const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
 const AWS = require("aws-sdk");
 const { response } = require("express")
+const ilib = require("ihelp-lib")
 const e = require("express")
 const NODE_ENV = process.env.NODE_ENV || "development";
 const geoDdbPort = process.env.GEO_DDB_PORT || 3005;
@@ -14,20 +9,12 @@ const TST_DB_NAME = "TST_INDIA_HOSPITAL_LIST"
 const DB_NAME = "INDIA_HOSPITAL_LIST"
 let client = null;
 
-async function initGeoTable() {
+function initGeoTable() {
     if (NODE_ENV == 'production') {
-        var config = tableManager(DB_NAME)
-        client = new geoClient(config)
+        client = ilib.InitDefaultConfigGeoTable(DB_NAME)
+        
     } else {
-        var config = tableManager(TST_DB_NAME)
-        client = new geoClient(config)
-    }
-
-    if (!(await client.TableExists())) {
-        console.log('Table doesnt exist creating new table')
-        await client.CreateTable()
-    } else {
-        console.log('Table already exist')
+       client = ilib.InitDefaultConfigGeoTable(TST_DB_NAME) 
     }
 }
 
@@ -185,7 +172,7 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
     let origin = `${params["lat"]},${params["long"]}`
     const destinationPromises = []
     destinationsStrList.map(dest => {
-        destinationPromises.push(gapi.getDistanceBetweenLatLong(origin, dest))
+        destinationPromises.push(ilib.gapi.getDistanceBetweenLatLong(origin, dest))
     })
     let promiseResults = await Promise.allSettled(destinationPromises)
     //embed durations in dbDict
@@ -213,11 +200,11 @@ async function mergeDbAndGApiResponse(dbDict, gDict, params) {
 async function getHospitalsWithinRadius(req, res) {
     var params = {};
     if (!req.body.hasOwnProperty(["lat"])) {
-        util.handleBadRequest(res, err.LAT_IS_MISSING)
+        ilib.util.handleBadRequest(res, err.LAT_IS_MISSING)
         return;
     }
     if (!req.body.hasOwnProperty(["long"])) {
-        util.handleBadRequest(res, err.LONG_IS_MISSING)
+        ilib.util.handleBadRequest(res, err.LONG_IS_MISSING)
         return;
     }
     if (!req.body.hasOwnProperty(["radius"])) {
@@ -230,7 +217,7 @@ async function getHospitalsWithinRadius(req, res) {
 
     //Get all list of hospitals from google client
     if (NODE_ENV == 'production') {//Dont want to call google api unnecessarily
-        var gResults = await gapi.getHospitalsFromLocationByRadius(params)
+        var gResults = await ilib.gapi.getHospitalsFromLocationByRadius(params)
             .then((response) => {
                 return response.results
             })
@@ -241,7 +228,7 @@ async function getHospitalsWithinRadius(req, res) {
     }
 
     if (req.body.hasOwnProperty(["shortcut"]) && req.body["shortcut"]) {
-        util.handleSuccess(res, gResults)
+        ilib.util.handleSuccess(res, gResults)
         return
     }
 
@@ -263,7 +250,7 @@ async function getHospitalsWithinRadius(req, res) {
         return []
     })
 
-    util.handleSuccess(res, _results)
+    ilib.util.handleSuccess(res, _results)
 }
 
 module.exports = {
